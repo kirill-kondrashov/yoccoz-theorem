@@ -1,31 +1,55 @@
-\section{Yoccoz}
-\textit{Source: \texttt{Yoccoz.lean}}
+\section{Yoccoz's Theorem}
+\label{sec:Yoccoz}
 
-This module contains the formal definitions and proofs.
-\subsection*{NonRenormalizable}\label{NonRenormalizable}
-Non-renormalizable parameters.
-    For the purpose of this plan, we define non-renormalizable parameters
-    as those for which the Yoccoz puzzle moduli diverge.
-    The deep work is then in the dichotomy axiom.
+This section connects the analytical tools (Grötzsch's inequality) with the combinatorial puzzle structure to prove the main result: for non-renormalizable parameters, the dynamical puzzle pieces shrink to a point.
 
-\textit{(See code: NonRenormalizable)}
+\subsection{Non-Renormalizability}
 
-\subsection*{non\_renormalizable\_moduli\_diverge}\label{non_renormalizable_moduli_diverge}
-Non-renormalizable parameters have divergent moduli.
+The concept of renormalizability is central to the classification of quadratic dynamics. For the purpose of this formalization, we adopt a combinatorial definition based on the puzzle moduli.
 
-\textit{(See code: non\_renormalizable\_moduli\_diverge)}
+\begin{definition}[Non-Renormalizable Parameter]
+A parameter $c \in \mathbb{C}$ is called \textit{non-renormalizable} if the sum of the moduli of the puzzle annuli diverges:
+\[ \sum_{n=0}^{\infty} \operatorname{mod}(A_n) = \infty, \]
+where $A_n = P_n(0) \setminus P_{n+1}(0)$ is the puzzle annulus at depth $n$.
+\end{definition}
 
-\subsection*{yoccoz\_theorem}\label{yoccoz_theorem}
-Yoccoz's Theorem: Divergence of moduli implies point intersection.
-    Proof idea:
-    *   If \texttt{c $\in$ M}: We apply **Grötzsch's criterion** to the nested sequence of dynamical puzzle pieces.
-        These pieces contain 0 and are connected. The divergence of the moduli of the annuli between
-        them forces the intersection of the pieces to be a single point \texttt{\{0\}}.
-    *   If \texttt{c $\notin$ M}: The orbit of 0 escapes. For large enough \texttt{n}, the potential level \texttt{1/2\textasciicircum{}n}
-        is smaller than \texttt{G(0)}, so \texttt{0} is no longer in the puzzle piece (which is defined by \texttt{G(z) < 1/2\textasciicircum{}n}).
-        Thus, the puzzle pieces eventually become empty. This would imply the sum of moduli is finite
-        (sum of zeros), contradicting the divergence hypothesis. Thus, this case is impossible under
-        the assumption of divergence.
+In the full theory, this condition is derived from the combinatorial "tableau" of the puzzle. Here, we take it as the defining property (Definition \texttt{NonRenormalizable}).
 
-\textit{(See code: yoccoz\_theorem)}
+\subsection{Yoccoz's Theorem}
+
+The main theorem asserts that this combinatorial condition forces local connectivity at the critical point.
+
+\begin{theorem}[Yoccoz's Theorem]
+Let $c \in \mathbb{C}$. If the parameter is non-renormalizable (i.e., the moduli sum diverges), then the intersection of all dynamical puzzle pieces containing $0$ consists of the single point $0$:
+\[ \bigcap_{n=0}^{\infty} P_n(0) = \{0\}. \]
+\end{theorem}
+
+\begin{proof}[Proof Strategy]
+The proof considers two cases based on whether $c$ is in the Mandelbrot set.
+
+\textbf{Case 1: $c \in \mathcal{M}$.}
+If $c$ is in the Mandelbrot set, the critical point $0$ never escapes. The puzzle pieces $P_n(0)$ form a nested sequence of connected open sets containing $0$.
+Since the parameter is non-renormalizable, we have by hypothesis:
+\[ \sum \operatorname{mod}(A_n) = \infty. \]
+By \textbf{Grötzsch's Criterion} (Theorem \ref{thm:groetzsch_criterion}), this divergence immediately implies that the intersection is trivial:
+\[ \bigcap P_n(0) = \{0\}. \]
+This is the core of the argument.
+
+\textbf{Case 2: $c \notin \mathcal{M}$.}
+If $c$ is outside the Mandelbrot set, the orbit of $0$ escapes to infinity. As shown in Lemma \texttt{dynamical\_puzzle\_piece\_empty\_of\_large\_n}, for sufficiently large $n$, $P_n(0)$ becomes empty (or does not contain $0$).
+If the sequence becomes empty, the moduli of the difference annuli would eventually be $0$ (since $\operatorname{mod}(\emptyset) = 0$).
+This would imply the sum is finite: $\sum \operatorname{mod}(A_n) < \infty$.
+But this contradicts the assumption that $c$ is non-renormalizable (divergent sum). Thus, this case cannot occur for a non-renormalizable parameter.
+\end{proof}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/yoccoz_concept.png}
+    \caption{Conceptual visualization of Yoccoz's Theorem. The nested puzzle pieces $P_0 \supset P_1 \supset P_2 \dots$ surround the critical point. If the sum of the "conformal thicknesses" (moduli) of the annuli $A_n$ is infinite, the pieces are forced to shrink to the single point $\{0\}$.}
+    \label{fig:yoccoz_concept}
+\end{figure}
+
+\subsection{Implications}
+This result is a key step towards the MLC conjecture. Since $P_n(0)$ shrinks to $\{0\}$, the fiber of the puzzle at the critical point is trivial. Through further arguments (relating the dynamical plane to the parameter plane), this implies local connectivity of the Mandelbrot set at $c$.
+
 
