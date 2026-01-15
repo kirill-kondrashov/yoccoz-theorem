@@ -203,35 +203,81 @@ def plot_escape_radius():
     c = -0.8 + 0.156j
     R = max(2, 1 + abs(c))
     
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(8, 8))
+    
+    # Plot filled Julia set for context
+    extent = [-4, 4, -4, 4]
+    x = np.linspace(extent[0], extent[1], 400)
+    y = np.linspace(extent[2], extent[3], 400)
+    X, Y = np.meshgrid(x, y)
+    Z = X + 1j * Y
+    G = green_function(c, Z, max_iter=50)
+    ax.contourf(X, Y, G, levels=[0, 0.01], colors=['#e0e0e0'], alpha=0.5) # Light gray K(c)
+    
     circle = plt.Circle((0, 0), R, fill=False, color='red', linestyle='--', linewidth=2, label=f'Escape Radius $R(c)={R:.2f}$')
     ax.add_patch(circle)
     
-    # Plot a trajectory escaping
-    z = 1.1 * R + 0.0j # Start outside
-    path_x, path_y = [z.real], [z.imag]
-    for _ in range(5):
-        z = z**2 + c
-        path_x.append(z.real)
-        path_y.append(z.imag)
-        if abs(z) > 10: break
+    # Generate many escaping orbits
+    np.random.seed(42)
+    angles = np.linspace(0, 2*np.pi, 20, endpoint=False)
+    escaping_starts = (R * 1.05) * np.exp(1j * angles) # Just outside R
     
-    ax.plot(path_x, path_y, 'b-o', label='Escaping Orbit')
-    
-    # Plot a bounded trajectory
-    z_in = 0.0j
-    path_x_in, path_y_in = [z_in.real], [z_in.imag]
-    for _ in range(20):
-        z_in = z_in**2 + c
-        path_x_in.append(z_in.real)
-        path_y_in.append(z_in.imag)
-    ax.plot(path_x_in, path_y_in, 'g-', alpha=0.5, label='Bounded Orbit (inside)')
+    for i, z_start in enumerate(escaping_starts):
+        z = z_start
+        path_x, path_y = [z.real], [z.imag]
+        for _ in range(8):
+            z = z**2 + c
+            path_x.append(z.real)
+            path_y.append(z.imag)
+            if abs(z) > 10: break
+        label = 'Escaping Orbits' if i == 0 else None
+        
+        # Plot line (transparent)
+        ax.plot(path_x, path_y, color='blue', linestyle='-', linewidth=1, alpha=0.2, label=label)
+        # Plot start point (opaque, visible)
+        ax.plot(path_x[0], path_y[0], marker='o', color='blue', markersize=4, alpha=0.8)
+        # Plot end point (arrow-like or distinct)
+        ax.plot(path_x[-1], path_y[-1], marker='>', color='blue', markersize=4, alpha=0.6)
+
+    # Generate many bounded orbits (random points inside K(c))
+    # We pick points, check if they are in K(c) roughly (G approx 0), then plot
+    bounded_starts = []
+    attempts = 0
+    while len(bounded_starts) < 10 and attempts < 1000:
+        z_cand = (np.random.random() + 1j * np.random.random()) * 2 - (1 + 1j) # box [-1, 1]
+        # Quick check
+        curr = z_cand
+        escaped = False
+        for _ in range(50):
+            if abs(curr) > R:
+                escaped = True
+                break
+            curr = curr**2 + c
+        if not escaped:
+            bounded_starts.append(z_cand)
+        attempts += 1
+
+    for i, z_start in enumerate(bounded_starts):
+        z_in = z_start
+        path_x_in, path_y_in = [z_in.real], [z_in.imag]
+        for _ in range(30):
+            z_in = z_in**2 + c
+            path_x_in.append(z_in.real)
+            path_y_in.append(z_in.imag)
+        label = 'Bounded Orbits' if i == 0 else None
+        
+        # Plot line
+        ax.plot(path_x_in, path_y_in, color='green', linestyle='-', linewidth=1, alpha=0.2, label=label)
+        # Plot start point
+        ax.plot(path_x_in[0], path_y_in[0], marker='o', color='green', markersize=4, alpha=0.8)
+        # Mark direction with small dots along path?
+        ax.plot(path_x_in[1:], path_y_in[1:], marker='.', color='green', markersize=1, alpha=0.2, linestyle='None')
     
     ax.set_xlim(-4, 4)
     ax.set_ylim(-4, 4)
     ax.set_aspect('equal')
-    ax.set_title(r"Escape Radius $R(c)$")
-    ax.legend()
+    ax.set_title(r"Escape Radius $R(c)$ Dynamics")
+    ax.legend(loc='upper right')
     plt.tight_layout()
     plt.savefig('../docs/images/escape_radius.png', dpi=150)
     plt.close()
@@ -264,7 +310,7 @@ def plot_basic_mapping():
         w_line = z_line**2 + c
         axes[1].plot(w_line.real, w_line.imag, 'r-', alpha=0.3)
         
-    axes[1].set_title(f"Range ($z \mapsto z^2 + {c}$)")
+    axes[1].set_title(r"Range ($z \mapsto z^2 + " + f"{c}" + r"$)")
     axes[1].set_aspect('equal')
     axes[1].grid(True)
     
@@ -276,42 +322,32 @@ def plot_basic_connectivity():
     print("Generating basic_connectivity.png...")
     # Connected (c in M)
     c1 = -0.12 + 0.75j
-    # Disconnected (c not in M) - pick a value further out to fragment more clearly
-    c2 = -0.72 + 0.3j # Near boundary but maybe not fragmented enough?
-    # Better: c = 0.3 is hyperbolic, simple connected.
-    # c = -2 is tip.
-    # c = i is outside (M goes to ~0.7i).
-    # Let's pick something clearly outside like 0.3 + 0.6i (rabbit is near -0.12+0.75)
-    # Actually, for Cantor dust, we need c outside M. 
-    # Let's try c = -0.1 + 0.8j. M top is around 0.6-0.7 for Re=-0.1.
-    c2 = -0.1 + 0.8j 
+    c2 = -0.7 + 0.8j
     
     # Increase resolution for dust
-    extent = [-1.5, 1.5, -1.5, 1.5]
-    x = np.linspace(extent[0], extent[1], 500)
-    y = np.linspace(extent[2], extent[3], 500)
+    extent = [-1.5, 1.5, -1.2, 1.2]
+    x = np.linspace(extent[0], extent[1], 800)
+    y = np.linspace(extent[2], extent[3], 640)
     X, Y = np.meshgrid(x, y)
     Z = X + 1j * Y
     
     G1 = green_function(c1, Z, max_iter=150)
-    G2 = green_function(c2, Z, max_iter=150)
+    G2 = green_function(c2, Z, max_iter=200)
     
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     
-    axes[0].imshow(G1, extent=extent, origin='lower', cmap='bone_r', vmax=0.5)
+    axes[0].imshow(G1, extent=extent, origin='lower', cmap='bone_r', vmin=0, vmax=0.5)
     axes[0].contourf(X, Y, G1, levels=[0, 0.001], colors=['black'])
-    axes[0].set_title(f"Connected $K(c)$\n$c={c1} \in \mathcal{{M}}$")
+    axes[0].set_title(r"Connected $K(c)$" + "\n" + r"$c=" + f"{c1}" + r" \in \mathcal{M}$")
     
-    # For Cantor set, we want to see many small islands.
-    # If G=0 is too small, we might miss it.
-    # Let's visualize the level sets close to 0 to hint at the dust.
-    axes[1].imshow(G2, extent=extent, origin='lower', cmap='bone_r', vmax=0.5)
-    # Plot contours close to 0 to show the dust accumulating
-    axes[1].contour(X, Y, G2, levels=[0.005, 0.01, 0.02], colors=['black', 'black', 'black'], linewidths=0.5, alpha=0.5)
-    # Fill "inside" very strictly
-    axes[1].contourf(X, Y, G2, levels=[0, 0.0001], colors=['black'])
+    # For Cantor set
+    axes[1].imshow(G2, extent=extent, origin='lower', cmap='bone_r', vmin=0, vmax=0.5)
+    # Use finer contours to show the fragmentation
+    axes[1].contour(X, Y, G2, levels=[0.002, 0.005, 0.01, 0.02, 0.05], colors=['black'], linewidths=0.3, alpha=0.7)
+    # Fill very strictly
+    axes[1].contourf(X, Y, G2, levels=[0, 0.001], colors=['black'])
     
-    axes[1].set_title(f"Disconnected $K(c)$ (Cantor Dust)\n$c={c2} \\notin \mathcal{{M}}$")
+    axes[1].set_title(r"Disconnected $K(c)$ (Cantor Dust)" + "\n" + r"$c=" + f"{c2}" + r" \notin \mathcal{M}$")
     
     plt.tight_layout()
     plt.savefig('../docs/images/basic_connectivity.png', dpi=300) # Higher DPI for dust
@@ -322,34 +358,48 @@ def plot_escape_growth():
     c = 0.3
     R = 2.0
     
-    fig, ax = plt.subplots(figsize=(6, 4))
+    fig, ax = plt.subplots(figsize=(8, 5))
     
-    # Escaping orbit
-    z_esc = 1.5 # Close to escape
-    orbit_esc = [abs(z_esc)]
-    curr = z_esc
-    for _ in range(10):
-        curr = curr**2 + c
-        orbit_esc.append(abs(curr))
+    # Define orbits: (start_z, label, style, color)
+    orbits = [
+        (1.5, 'Escaping (Fast)', 'o-', 'blue'),
+        (1.3, 'Escaping (Slow)', 's-', 'cyan'),
+        (2.1, 'Escaping (Immediate)', '^-', 'navy'),
+        (0.5, 'Bounded (Stable)', 'x-', 'green'),
+        (0.1, 'Bounded (Center)', '.-', 'lime'),
+        (0.8, 'Bounded (Boundary)', '*-', 'olive') # Might escape if unlucky, but 0.3 is hyperbolic
+    ]
+
+    for z0, label, marker, color in orbits:
+        orbit = [abs(z0)]
+        curr = complex(z0) # Ensure complex type for calculation
+        escaped = False
+        for _ in range(12):
+            try:
+                curr = curr**2 + c
+                val = abs(curr)
+                if val > 1e10: # Cap large values for plot and prevent overflow
+                    val = 1e10
+                    escaped = True
+                orbit.append(val)
+                if escaped: # Stop iterating if already huge
+                    # Fill rest with capped value or just stop?
+                    # Stopping is safer for log plot
+                    pass 
+            except OverflowError:
+                 orbit.append(1e10)
+                 escaped = True
+
+        ax.plot(orbit, marker, color=color, label=f'{label} $|z_0|={z0}$')
     
-    # Bounded orbit
-    z_bd = 0.5
-    orbit_bd = [abs(z_bd)]
-    curr = z_bd
-    for _ in range(10):
-        curr = curr**2 + c
-        orbit_bd.append(abs(curr))
-        
-    ax.plot(orbit_esc, 'b-o', label='Escaping ($|z_0|=1.5$)')
-    ax.plot(orbit_bd, 'g-x', label='Bounded ($|z_0|=0.5$)')
-    ax.axhline(R, color='r', linestyle='--', label='Escape Radius R')
+    ax.axhline(R, color='r', linestyle='--', linewidth=2, label='Escape Radius R')
     
     ax.set_yscale('log')
     ax.set_xlabel('Iteration n')
     ax.set_ylabel('|z_n| (log scale)')
-    ax.set_title("Orbit Growth")
+    ax.set_title("Orbit Growth Dynamics")
     ax.legend()
-    ax.grid(True)
+    ax.grid(True, which="both", ls="-", alpha=0.3)
     
     plt.tight_layout()
     plt.savefig('../docs/images/escape_growth.png', dpi=150)
@@ -458,8 +508,8 @@ def plot_yoccoz_contradiction():
     
     fig, ax = plt.subplots(figsize=(6, 4))
     
-    ax.plot(n, moduli_case1, 'b-o', label='Case 1 ($c \in \mathcal{M}$): $\sum \infty$')
-    ax.plot(n, moduli_case2, 'r-x', label='Case 2 ($c \\notin \mathcal{M}$): Finite Sum')
+    ax.plot(n, moduli_case1, 'b-o', label=r'Case 1 ($c \in \mathcal{M}$): $\sum \infty$')
+    ax.plot(n, moduli_case2, 'r-x', label=r'Case 2 ($c \notin \mathcal{M}$): Finite Sum')
     
     ax.axhline(0, color='black', linewidth=0.5)
     ax.set_xlabel('Depth n')
