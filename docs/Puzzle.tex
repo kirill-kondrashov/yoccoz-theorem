@@ -1,0 +1,52 @@
+\section{Puzzle Definitions}
+\label{sec:Puzzle}
+
+This section describes the verification of the file \texttt{Mlc/Quadratic/Complex/Puzzle.lean}, which defines the fundamental geometric objects used in the proof: dynamical and parameter puzzle pieces.
+
+\subsection{Dynamical Puzzle Pieces}
+
+The Yoccoz puzzle relies on decomposing the dynamical plane using the level sets of the Green's function.
+
+\begin{lstlisting}[language=Lean]
+def DynamicalPuzzlePiece (c : ℂ) (n : ℕ) (z : ℂ) : Set ℂ :=
+  connectedComponentIn {w | green_function c w < (1 / 2) ^ n} z
+\end{lstlisting}
+
+\noindent
+\textbf{Detailed Explanation:}
+\begin{itemize}
+    \item \texttt{DynamicalPuzzlePiece}: This function defines a set in the complex plane for a given parameter $c$, depth $n$, and target point $z$.
+    \item \texttt{green\_function c w < (1 / 2) \^{} n}: This defines the sublevel set of the potential. The threshold $1/2^n$ is standard for Yoccoz puzzles.
+    \item \texttt{connectedComponentIn ... z}: We take only the connected component containing $z$. This ensures that puzzle pieces are topological disks (or at least connected), which is crucial for defining their moduli.
+\end{itemize}
+
+\subsection{Puzzle Annuli}
+
+We define the annuli formed by the difference of consecutive puzzle pieces around the critical point.
+
+\begin{lstlisting}[language=Lean]
+def PuzzleAnnulus (c : ℂ) (n : ℕ) : Set ℂ :=
+  DynamicalPuzzlePiece c n 0 \ DynamicalPuzzlePiece c (n + 1) 0
+\end{lstlisting}
+
+\noindent
+\textbf{Detailed Explanation:}
+\begin{itemize}
+    \item \texttt{PuzzleAnnulus}: The set difference between the puzzle piece at depth $n$ and the piece at depth $n+1$, both centered at the critical point $0$.
+    \item These sets form the "thick" regions whose moduli we will sum up in the application of Grötzsch's inequality.
+\end{itemize}
+
+\subsection{Parameter Puzzle Pieces}
+
+The definitions in the dynamical plane are transferred to the parameter plane.
+
+\begin{lstlisting}[language=Lean]
+def ParaPuzzlePiece (n : ℕ) : Set ℂ := {c | c ∈ DynamicalPuzzlePiece c n 0}
+\end{lstlisting}
+
+\noindent
+\textbf{Detailed Explanation:}
+\begin{itemize}
+    \item \texttt{ParaPuzzlePiece}: The set of parameters $c$ such that $c$ itself is contained in the dynamical puzzle piece of depth $n$ (specifically the one containing 0).
+    \item Note: Since $f_c(0) = c$, checking if $c \in P_n(0)$ is checking if the critical value is in the puzzle piece of the critical point.
+\end{itemize}

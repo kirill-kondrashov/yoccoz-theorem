@@ -1,0 +1,269 @@
+\section{Green's Function Properties}
+\label{sec:GreenLemmas}
+
+This section describes the verification of the file \texttt{Mlc/Quadratic/Complex/GreenLemmas.lean}. It contains technical lemmas establishing the convergence and properties of the Green's function defined in Section \ref{sec:Green}.
+
+\subsection{Convergence of the Potential Sequence}
+
+The main result of this section is the convergence of the potential sequence, which establishes the well-definedness of the Green's function $G_c(z)$. The formalization proves that the sequence \texttt{potential\_seq} converges for all $z \in \mathbb{C}$.
+
+\subsubsection{Logarithmic Approximations}
+
+We start with technical estimates for logarithms, crucial for bounding the difference between successive terms of the potential sequence.
+
+\begin{lstlisting}[language=Lean]
+lemma log_ge_one_sub_inv {x : $\mathbb{R}$} (hx : 0 < x) : Real.log x $\ge$ 1 - 1/x := by
+  have h := Real.log_le_sub_one_of_pos (inv_pos.mpr hx)
+  rw [Real.log_inv] at h
+  rw [inv_eq_one_div] at h
+  linarith
+
+lemma abs_log_le_two_mul_abs_sub_one {x : $\mathbb{R}$} (hx : 0.5 $\le$ x) : |Real.log x| $\le$ 2 * |x - 1| := by
+  by_cases h1 : 1 $\le$ x
+  · rw [abs_of_nonneg (Real.log_nonneg h1), abs_of_nonneg (sub_nonneg.mpr h1)]
+    apply le_trans (Real.log_le_sub_one_of_pos (lt_of_lt_of_le (by norm_num) h1))
+    linarith
+  · push_neg at h1
+    -- (Proof handles the case x < 1)
+    rw [abs_of_neg (Real.log_neg (by linarith) h1), abs_of_neg (sub_neg.mpr h1)]
+    -- (Omitted technical steps for brevity, involves log_ge_one_sub_inv)
+    linarith
+\end{lstlisting}
+
+\textbf{Explanation of \texttt{log\_ge\_one\_sub\_inv}:}
+\begin{itemize}
+    \item \texttt{Real.log\_le\_sub\_one\_of\_pos}: This is the standard inequality $\log y \le y - 1$ applied to $y = 1/x$.
+    \item \texttt{inv\_pos.mpr hx}: Since $x > 0$, $1/x > 0$, so the inequality applies.
+    \item \texttt{rw [Real.log\_inv]}: Use $\log(1/x) = -\log x$. The inequality becomes $-\log x \le 1/x - 1$.
+    \item \texttt{linarith}: Multiplying by $-1$ reverses the inequality: $\log x \ge 1 - 1/x$.
+\end{itemize}
+
+\begin{proof}
+The inequality $\log x\ge1-1/x$ follows by applying the standard estimate $\log y\le y-1$ to $y=1/x$, rewriting $\log(1/x)=-\log x$, and rearranging.
+\end{proof}
+
+\textbf{Explanation of \texttt{abs\_log\_le\_two\_mul\_abs\_sub\_one}:}
+We split into two cases: $x \ge 1$ and $0.5 \le x < 1$.
+\begin{itemize}
+    \item \textbf{Case $x \ge 1$}:
+        \item We remove absolute values since $\log x \ge 0$ and $x-1 \ge 0$.
+        \item We use $\log x \le x - 1$.
+        \item Since $x - 1 \le 2(x - 1)$, the inequality holds.
+    \item \textbf{Case $x < 1$}:
+        \item Absolute values become $-\log x$ and $-(x-1) = 1-x$.
+        \item We use the lower bound $\log x \ge 1 - 1/x$ derived above.
+        \item Algebra shows $-(1 - 1/x) \le 2(1-x)$ for $x \ge 0.5$.
+\end{itemize}
+
+\begin{proof}
+Consider the two cases. If $x\ge1$ then $\log x\le x-1\le2(x-1)$ so $|\log x|\le2|x-1|$. If $0.5\le x<1$ apply the bound $\log x\ge1-1/x$ and rearrange to get $-\log x\le2(1-x)$, hence $|\log x|\le2|x-1|$. Thus the inequality holds in both cases.
+\end{proof}
+
+\subsubsection{Escape Bounds}
+
+We define a specific escape bound that ensures the quadratic behavior dominates.
+
+\begin{lstlisting}[language=Lean]
+/-- A bound used to ensure the orbit is large enough for the log approximation. -/
+def escape_bound (c : $\mathbb{C}$) : $\mathbb{R}$ := max (R c) (Real.sqrt (2 * $\|$c$\|$ + 1))
+\end{lstlisting}
+
+This bound ensures both $|z| > R(c)$ (so it escapes) and $|z|$ is large enough such that $c/z^2$ is small ($ \le 1/2 $).
+
+\subsubsection{Recursive Estimate}
+
+The key to proving convergence is estimating the difference between consecutive terms $a_n = 2^{-n} \log |z_n|$.
+We show that $|a_{n+1} - a_n| \le C \cdot 2^{-(n+1)}$.
+
+\begin{lstlisting}[language=Lean]
+lemma potential_seq_diff_le (c z : $\mathbb{C}$) (k : $\mathbb{N}$) (h_orbit : $\|$orbit c z k$\|$ > escape_bound c) :
+    dist (potential_seq c z k) (potential_seq c z (k + 1)) $\le$ 
+    (1 / 2 ^ (k + 1)) * (2 * $\|$c$\|$ / (escape_bound c)^2) := by
+  rw [dist_eq_norm, Real.norm_eq_abs]
+  rw [potential_seq, potential_seq]
+  -- (Simplification of max terms for large orbits)
+  rw [pow_add, pow_one, one_div, inv_mul_eq_div, div_mul_eq_mul_div]
+  -- (Algebraic manipulations to isolate the difference of logs)
+  apply le_trans (log_orbit_diff_le c z k h_orbit)
+  gcongr
+  -- (Bounds on the geometric factor)
+\end{lstlisting}
+
+\textbf{Explanation:}
+\begin{itemize}
+    \item \texttt{rw [dist\_eq\_norm, ... abs]}: The distance in $\mathbb{R}$ is the absolute difference.
+    \item \texttt{rw [potential\_seq]}: Expand the definition $a_n = \frac{1}{2^n} \log|z_n|$.
+    \item The difference is $|\frac{1}{2^k} \log|z_k| - \frac{1}{2^{k+1}} \log|z_{k+1}||$.
+    \item We factor out $\frac{1}{2^{k+1}}$ to get $\frac{1}{2^{k+1}} |2 \log|z_k| - \log|z_{k+1}||$.
+    \item \texttt{log\_orbit\_diff\_le}: We call a helper lemma that bounds $|2 \log|z_k| - \log|z_{k+1}||$.
+        \begin{itemize}
+            \item Recall $z_{k+1} = z_k^2 + c = z_k^2(1 + c/z_k^2)$.
+            \item $\log|z_{k+1}| = \log|z_k^2| + \log|1 + c/z_k^2| = 2\log|z_k| + \log|1 + u|$.
+            \item So the difference is just $|\log|1+u||$.
+            \item Since $|u| = |c/z_k^2| \le 1/2$ (due to escape bound), $|\log|1+u|| \le 2|u| = 2|c|/|z_k|^2$.
+        \end{itemize}
+    \item \texttt{gcongr}: We bound $1/|z_k|^2$ by $1/(\text{escape\_bound})^2$.
+\end{itemize}
+
+\begin{proof}
+Writing $z_{k+1}=z_k^2(1+u)$ with $u=c/z_k^2$ we have
+$2\log|z_k|-\log|z_{k+1}|=-\log|1+u|$, and for $|u|\le1/2$ one has $|\log(1+u)|\le2|u|$. Thus
+$|a_{k+1}-a_k|=2^{-(k+1)}|\log(1+u)|\le2^{-(k+1)}\cdot2|c|/|z_k|^2\le2^{-(k+1)}\cdot2|c|/B^2$, as required.
+\end{proof}
+
+\subsection{Convergence Results}
+
+\subsubsection{Convergence on $K_c$}
+
+For points in the filled Julia set ($z \in K_c$), the sequence converges to 0.
+
+\begin{lstlisting}[language=Lean]
+/-- Convergence of the potential sequence to 0 for `z in K(c)`. -/
+lemma potential_seq_converges_of_mem_K (h : z $\in$ K c) :
+    Tendsto (potential_seq c z) atTop ($\mathcal{N}$ 0) := by
+  rcases h with $\langle$M, hM$\rangle$
+  let B := Real.log (max 1 M)
+  have h_bound : $\forall$ n, |potential_seq c z n| $\le$ (1 / 2 ^ n) * B := by
+    intro n
+    rw [potential_seq, abs_mul, abs_of_nonneg (by positivity)]
+    gcongr
+    rw [abs_of_nonneg (Real.log_nonneg (le_max_left 1 _))]
+    apply Real.log_le_log (lt_of_lt_of_le zero_lt_one (le_max_left 1 _))
+    apply max_le_max (le_refl 1) (hM n)
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le
+    (g := fun n => -(1 / 2 ^ n * B))
+    (h := fun n => 1 / 2 ^ n * B)
+    _
+    _
+    (fun n => (abs_le.mp (h_bound n)).1)
+    (fun n => (abs_le.mp (h_bound n)).2)
+  · rw [← neg_zero]
+    apply Tendsto.neg
+    convert Filter.Tendsto.mul_const B (tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num : 0 $\le$ (1/2 : $\mathbb{R}$)) (by norm_num : (1/2 : $\mathbb{R}$) < 1))
+    simp [one_div, inv_pow]
+    ring
+  · convert Filter.Tendsto.mul_const B (tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num : 0 $\le$ (1/2 : $\mathbb{R}$)) (by norm_num : (1/2 : $\mathbb{R}$) < 1))
+    simp [one_div, inv_pow]
+    ring
+\end{lstlisting}
+
+\textbf{Explanation of \texttt{potential\_seq\_converges\_of\_mem\_K}:}
+\begin{itemize}
+    \item \texttt{rcases h}: By definition of $K_c$, there exists $M$ such that $|z_n| \le M$ for all $n$.
+    \item \texttt{let B}: We define a constant bound $B = \log(\max(1, M))$.
+    \item \texttt{h\_bound}: We establish the inequality $|a_n| \le \frac{1}{2^n} B$.
+        \begin{itemize}
+            \item \texttt{rw [potential\_seq]}: Expand definition.
+            \item \texttt{abs\_mul}: $|a_n| = |1/2^n| \cdot |\log(\max(1, |z_n|))|$.
+            \item \texttt{gcongr}: We use monotonicity of $\log$. Since $|z_n| \le M$, $\max(1, |z_n|) \le \max(1, M)$, so $\log(\dots) \le B$.
+        \end{itemize}
+    \item \texttt{apply tendsto...}: We apply the Sandwich Theorem (Squeeze Theorem).
+    \item \textbf{Sandwich Logic}: We squeeze $a_n$ between $-B/2^n$ and $B/2^n$.
+    \item \textbf{Limits}:
+        \begin{itemize}
+            \item We show $\lim_{n \to \infty} B \cdot (1/2)^n = B \cdot 0 = 0$.
+            \item \texttt{tendsto\_pow\_atTop\_nhds\_zero\_of\_lt\_one}: Standard lemma that $r^n \to 0$ if $|r| < 1$. Here $r = 1/2$.
+            \item \texttt{Tendsto.neg}: Therefore $\lim -(B/2^n) = -0 = 0$.
+        \end{itemize}
+    \item \textbf{Conclusion}: Since lower and upper bounds converge to 0, $a_n$ converges to 0.
+\end{itemize}
+
+\begin{proof}
+Boundedness of $|z_n|$ gives $|a_n|\le B/2^n$, hence $a_n\to0$ by the squeeze theorem since $B/2^n\to0$. This proves the lemma.
+\end{proof}
+
+\subsubsection{Convergence on $I_c$}
+
+For escaping points ($z \notin K_c$), the convergence is established by showing the sequence is Cauchy.
+
+\begin{lstlisting}[language=Lean]
+/-- Convergence of the potential sequence for `z not in K(c)`. -/
+lemma potential_seq_converges_of_escapes (h : z $\notin$ K c) :
+    $\exists$ L, Tendsto (potential_seq c z) atTop ($\mathcal{N}$ L) := by
+  dsimp [K, boundedOrbit] at h
+  push_neg at h
+  let B := escape_bound c
+  obtain $\langle$n0, hn0$\rangle$ := h B
+  have hn0_R : $\|$orbit c z n0$\|$ > R c := lt_of_le_of_lt (escape_bound_ge_R c) hn0
+  obtain $\langle$N_large, h_growth$\rangle$ := escape_lemma n0 hn0_R B
+  refine cauchySeq_tendsto_of_complete (cauchySeq_of_summable_dist ?_)
+  let a := potential_seq c z
+  rw [$\leftarrow$ summable_nat_add_iff (n0 + N_large)]
+  have h_bound : $\forall$ k, dist (a (k + (n0 + N_large))) (a (k + (n0 + N_large) + 1)) $\le$ (1 / 2 ^ (k + (n0 + N_large) + 1)) * (2 * $\|$c$\|$ / B^2) := by
+    intro k
+    let n := k + (n0 + N_large)
+    have hn_B : $\|$orbit c z n$\|$ > B := by
+      apply h_growth
+      dsimp [n]
+      linarith
+    exact potential_seq_diff_le c z n hn_B
+  dsimp [a]
+  refine Summable.of_nonneg_of_le (fun k => dist_nonneg) (fun k => h_bound k) ?_
+  simp only [pow_add, one_div, mul_inv]
+  have : $\forall$ i : $\mathbb{N}$, (2 ^ i : $\mathbb{R}$)⁻¹ = (2⁻¹) ^ i := fun i => by rw [inv_pow]
+  simp_rw [this]
+  apply Summable.mul_right
+  apply Summable.mul_right
+  apply Summable.mul_right
+  apply summable_geometric_of_lt_one (by norm_num) (by norm_num)
+\end{lstlisting}
+
+\textbf{Explanation of \texttt{potential\_seq\_converges\_of\_escapes}:}
+\begin{itemize}
+    \item \texttt{push\_neg at h}: Since the orbit is unbounded, for our specific bound $B = \text{escape\_bound}(c)$, there exists an iterate $n_0$ where $|z_{n_0}| > B$.
+    \item \texttt{escape\_lemma}: We invoke the escape lemma. Once the orbit exceeds $R(c)$ (which is $\le B$), it stays above any bound we choose. Here we ensure it stays above $B$ for all $n \ge n_0$.
+    \item \texttt{cauchySeq\_tendsto\_of\_complete}: In a complete metric space ($\mathbb{R}$), every Cauchy sequence converges.
+    \item \texttt{cauchySeq\_of\_summable\_dist}: A sequence is Cauchy if the sum of distances between consecutive terms is finite: $\sum |a_{n+1} - a_n| < \infty$.
+    \item \texttt{summable\_nat\_add\_iff}: It suffices to show the tail of the sum converges (ignoring the first $n_0 + N_{large}$ terms).
+    \item \texttt{h\_bound}: We establish the bound for the tail terms.
+        \begin{itemize}
+            \item For $n \ge n_0 + N_{large}$, we know $|z_n| > B$ (by \texttt{h\_growth}).
+            \item We apply \texttt{potential\_seq\_diff\_le}, which gives $|a_{n+1} - a_n| \le C \cdot (1/2)^{n+1}$, where $C = 2|c|/B^2$.
+        \end{itemize}
+    \item \texttt{Summable.of\_nonneg\_of\_le}: We use the comparison test. Since $|a_{n+1} - a_n| \le \text{geometric term}$, and the geometric series converges, our sum converges.
+    \item \texttt{summable\_geometric\_of\_lt\_one}: The geometric series $\sum (1/2)^k$ converges because $|1/2| < 1$.
+\end{itemize}
+
+\begin{proof}
+By unboundedness choose $n_0$ with $|z_{n_0}|>B$ and apply the escape lemma to obtain growth from $n_0$ onward. For the tail we have $|a_{n+1}-a_n|\le C\,2^{-(n+1)}$ by \texttt{potential\_seq\_diff\_le}, so the series of consecutive differences is dominated by a convergent geometric series; hence $(a_n)$ is Cauchy and therefore converges in $\mathbb{R}$.
+\end{proof}
+
+\subsubsection{Global Convergence}
+
+Combining these, we have the global convergence.
+
+\begin{lstlisting}[language=Lean]
+/-- Convergence of the potential sequence for all `z`. -/
+lemma potential_seq_converges (c z : $\mathbb{C}$) :
+    $\exists$ L, Tendsto (potential_seq c z) atTop ($\mathcal{N}$ L) := by
+  by_cases h : z $\in$ K c
+  · use 0; exact potential_seq_converges_of_mem_K h
+  · exact potential_seq_converges_of_escapes h
+
+/-- `G_c(z)` equals the limit of the potential sequence. -/
+lemma green_function_eq_lim (c z : $\mathbb{C}$) :
+    Tendsto (potential_seq c z) atTop ($\mathcal{N}$ (green_function c z)) := by
+  obtain $\langle$L, hL$\rangle$ := potential_seq_converges c z
+  have h_eq : green_function c z = L := by
+    rw [green_function, limUnder, lim]
+    have h_ex : $\exists$ x, map (potential_seq c z) atTop $\le$ $\mathcal{N}$ x := $\langle$L, hL$\rangle$
+    have h_spec := Classical.epsilon_spec h_ex
+    exact (tendsto_nhds_unique hL h_spec).symm
+  rw [h_eq]
+  exact hL
+\end{lstlisting}
+
+\textbf{Explanation of \texttt{potential\_seq\_converges} and \texttt{green\_function\_eq\_lim}:}
+\begin{itemize}
+    \item \texttt{by\_cases}: We partition the complex plane into $K_c$ and its complement.
+        \item If $z \in K_c$, we proved the limit is 0.
+        \item If $z \notin K_c$, we proved the limit exists (call it $L$).
+    \item \texttt{green\_function\_eq\_lim}: We link the definition to the proved limit.
+    \item \texttt{limUnder}: The definition of $G_c(z)$ uses the \texttt{lim} operator.
+    \item \texttt{Classical.epsilon\_spec}: The \texttt{lim} operator is defined using Hilbert's epsilon operator to pick \emph{a} limit if one exists.
+    \item \texttt{tendsto\_nhds\_unique}: In a Hausdorff space (like $\mathbb{R}$), limits are unique. Thus, the value picked by \texttt{lim} must be exactly the $L$ we established.
+\end{itemize}
+
+\begin{proof}
+Combine the two previous cases: if $z\in K_c$ the sequence tends to $0$, otherwise it converges to some $L$ by the Cauchy argument above. The definition of the Green function uses \texttt{lim} to select a limit when one exists, and uniqueness of limits in $\mathbb{R}$ identifies this $L$ with $G_c(z)$; therefore the potential sequence tends to $G_c(z)$.
+\end{proof}

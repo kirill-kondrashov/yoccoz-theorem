@@ -1,0 +1,17 @@
+[project]
+name = "mlc-scripts"
+version = "0.1.0"
+description = "Scripts for MLC project"
+authors = [
+    {name = "MLC"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "graphviz (>=0.21,<0.22)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
