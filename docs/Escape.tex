@@ -3,33 +3,39 @@
 
 This section establishes the fundamental escape criterion for the quadratic family $f_c(z) = z^2 + c$. The result ensures that if the orbit of a point leaves a sufficiently large disk, it necessarily escapes to infinity.
 
-\subsection{Statement}
-We recall the escape radius $R(c) = \max(2, 1 + |c|)$.
+\subsection*{Escape Radius}
+Recall the definition of the escape radius from the Basic properties:
+\[ R(c) = \max(2, 1 + |c|). \]
+This radius provides a threshold: any point outside the disk $D(0, R(c))$ will have an orbit that grows without bound.
 
-The \textbf{Escape Lemma} asserts that if for some iteration $n$, the point $z_n = f_c^{\circ n}(z)$ lies outside the disk of radius $R(c)$, i.e., $|z_n| > R(c)$, then the orbit of $z$ escapes to infinity:
-\[
-\lim_{m \to \infty} |f_c^{\circ m}(z)| = \infty
-\]
+\subsection*{The Escape Lemma}
+\textbf{Lemma} (\texttt{escape\_lemma}).
+\textit{Let $c, z \in \mathbb{C}$. If there exists an $n \in \mathbb{N}$ such that $|f_c^n(z)| > R(c)$, then the orbit of $z$ escapes to infinity:
+\[ \lim_{m \to \infty} |f_c^m(z)| = \infty. \]
+}
 
-\subsection{Proof Strategy}
-The proof relies on establishing a geometric growth property for points outside the escape radius.
-We define a growth factor $\lambda(w)$ for any $w$ with $|w| > R(c)$:
-\[
-\lambda(w) = |w| - \frac{|c|}{|w|}
-\]
-The key steps are:
-\begin{enumerate}
-    \item \textbf{Growth Factor > 1}: We show that if $|w| > R(c)$, then $\lambda(w) > 1$.
-    \item \textbf{Inductive Lower Bound}: We prove by induction that for all $k \ge 0$, the subsequent iterates satisfy:
-    \[
-    |f_c^{\circ k}(w)| \ge |w| \cdot \lambda(w)^k
-    \]
-    \item \textbf{Conclusion}: Since $\lambda(w) > 1$, the term $\lambda(w)^k$ tends to infinity as $k \to \infty$, forcing the orbit to escape.
-\end{enumerate}
+\begin{proof}[Proof Idea]
+(See Lean: \texttt{MLC.Quadratic.escape\_lemma})
 
-\subsection{Significance for MLC}
-This lemma is crucial for the construction of the Yoccoz puzzle:
+Let $w = f_c^n(z)$. Since $|w| > R(c)$, we define a ``growth factor'' $\lambda(w)$:
+\[ \lambda(w) = |w| - \frac{|c|}{|w|}. \]
+First, we show that $|w| > R(c)$ implies $\lambda(w) > 1$ (Lean: \texttt{factor\_gt\_one}).
+Then, using induction on $k$, we establish the inequality:
+\[ |f_c^k(w)| \ge |w| \cdot \lambda(w)^k. \]
+Since $\lambda(w) > 1$, the term $\lambda(w)^k$ tends to infinity as $k \to \infty$, forcing $|f_c^k(w)| \to \infty$.
+\end{proof}
+
+\subsection*{Orbit Growth}
+A direct consequence of the escape mechanism is that the norm of the orbit cannot decrease once it exceeds the escape radius.
+
+\textbf{Lemma} (\texttt{norm\_orbit\_ge\_of\_norm\_ge\_R}).
+\textit{If $|z| > R(c)$, then for all $n \in \mathbb{N}$,
+\[ |f_c^n(z)| \ge |z|. \]
+}
+
+\subsection*{Significance for MLC}
+The escape lemma is foundational for the Yoccoz puzzle construction:
 \begin{itemize}
-    \item It defines the \textbf{Basin of Infinity} $A(\infty) = \{ z \mid f_c^{\circ n}(z) \to \infty \}$, which contains the complement of the closed disk $\overline{D}(0, R(c))$.
-    \item It allows the definition of the \textbf{Green's Function} on $A(\infty)$, which provides the "grid" (equipotentials and external rays) for the puzzle partition.
+    \item \textbf{Basin of Infinity}: It characterizes the basin of attraction of infinity, $A(\infty)$, showing it contains the exterior of the disk of radius $R(c)$.
+    \item \textbf{Green's Function}: It ensures the well-definedness of the Green's function $G_c(z) = \lim_{n \to \infty} 2^{-n} \log^+ |f_c^n(z)|$ on the basin of infinity, which in turn defines the equipotentials and external rays used to cut the puzzle pieces.
 \end{itemize}
