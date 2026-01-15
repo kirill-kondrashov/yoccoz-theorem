@@ -1,42 +1,45 @@
-\section{GreenLemmas}
-\textit{Source: \texttt{Quadratic/Complex/GreenLemmas.lean}}
+\section{Properties of the Green's Function}
+\label{sec:GreenLemmas}
 
-\begin{quotation}
-\textbf{Convergence for escaping points}
-\end{quotation}
+This section details the convergence properties of the sequence defining the Green's function.
 
-\subsection*{escape\_bound}\label{escape_bound}
-A bound used to ensure the orbit is large enough for the log approximation.
+\subsection*{Potential Sequence}
+The Green's function is constructed as the limit of the sequence:
+\[ G_n(z) = \frac{1}{2^n} \log \max(1, |f_c^n(z)|). \]
+This sequence captures the exponential growth rate of the orbit norm.
 
-\textit{(See code: escape\_bound)}
+\subsection*{Convergence}
+\textbf{Theorem} (\texttt{potential\_seq\_converges}).
+\textit{For any $c, z \in \mathbb{C}$, the sequence $G_n(z)$ converges to a finite limit $G_c(z)$.}
 
-\subsection*{potential\_seq}\label{potential_seq}
-The n-th approximation of the Green's function: \texttt{1/2\textasciicircum{}n * log (max 1 ‖f\_c\textasciicircum{}n(z)‖)}.
+\begin{proof}[Proof Idea]
+The proof splits into two cases:
+\begin{itemize}
+    \item \textbf{Bounded Orbits ($z \in K(c)$)}: The orbit $|f_c^n(z)|$ remains bounded by some $M$. Thus,
+    \[ 0 \le G_n(z) \le \frac{1}{2^n} \log(\max(1, M)) \to 0. \]
+    So $G_c(z) = 0$.
+    \item \textbf{Escaping Orbits ($z \notin K(c)$)}: Once the orbit exceeds the escape bound $R(c)$, the growth is approximately squaring ($|z_{n+1}| \approx |z_n|^2$). We show the sequence is Cauchy by bounding the difference:
+    \[ |G_{n+1}(z) - G_n(z)| \approx \frac{1}{2^{n+1}} \left| \log \frac{|f_c(z_n)|}{|z_n|^2} \right| \le \frac{C}{2^n |z_n|^2}. \]
+    Since $|z_n|$ grows exponentially, the sum of differences converges rapidly.
+\end{itemize}
 
-\textit{(See code: potential\_seq)}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/convergence_plots.png}
+    \caption{Visualization of the convergence of the potential sequence $G_n(z)$. Left: The sequence values stabilize rapidly for escaping points (orange, blue) and stay zero for bounded points (green). Right: The difference $|G_{n+1}-G_n|$ decays doubly exponentially for escaping points, illustrating the Cauchy property.}
+    \label{fig:convergence}
+\end{figure}
 
-\subsection*{green\_function}\label{green_function}
-The Green's function \texttt{G\_c(z)}. Defined as the limit of \texttt{potential\_seq}.
+\end{proof}
 
-\textit{(See code: green\_function)}
+\subsection*{Limit Definition}
+\textbf{Lemma} (\texttt{green\_function\_eq\_lim}).
+\textit{The function \texttt{green\_function} coincides with the limit of the potential sequence:}
+\[ G_c(z) = \lim_{n \to \infty} G_n(z). \]
+For a visualization of the limit function $G_c(z)$ and its geometry, see Figure \ref{fig:green_function}.
 
-\subsection*{potential\_seq\_converges\_of\_mem\_K}\label{potential_seq_converges_of_mem_K}
-Convergence of the potential sequence to 0 for \texttt{z $\in$ K(c)}.
-
-\textit{(See code: potential\_seq\_converges\_of\_mem\_K)}
-
-\subsection*{potential\_seq\_converges\_of\_escapes}\label{potential_seq_converges_of_escapes}
-Convergence of the potential sequence for \texttt{z $\notin$ K(c)}.
-
-\textit{(See code: potential\_seq\_converges\_of\_escapes)}
-
-\subsection*{potential\_seq\_converges}\label{potential_seq_converges}
-Convergence of the potential sequence for all \texttt{z}.
-
-\textit{(See code: potential\_seq\_converges)}
-
-\subsection*{green\_function\_eq\_lim}\label{green_function_eq_lim}
-\texttt{G\_c(z)} equals the limit of the potential sequence.
-
-\textit{(See code: green\_function\_eq\_lim)}
-
+\subsection*{Escape Bound}
+The convergence proof relies on an explicit escape bound slightly larger than $R(c)$ to ensure stable logarithmic behavior.
+\textbf{Definition} (\texttt{escape\_bound}).
+\[ B(c) = \max\left(R(c), \sqrt{2|c| + 1}\right). \]
+This bound ensures that once $|z| > B(c)$, the term $|c|/|z|^2$ is small enough (specifically $\le 1/2$) to use Taylor expansion estimates for the logarithm.

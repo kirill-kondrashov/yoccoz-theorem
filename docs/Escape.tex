@@ -8,6 +8,13 @@ Recall the definition of the escape radius from the Basic properties:
 \[ R(c) = \max(2, 1 + |c|). \]
 This radius provides a threshold: any point outside the disk $D(0, R(c))$ will have an orbit that grows without bound.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/escape_radius.png}
+    \caption{The Escape Radius $R(c)$. Orbits starting outside the red circle (blue trajectory) escape to infinity. Orbits inside (green) may remain bounded.}
+    \label{fig:escape_radius}
+\end{figure}
+
 \subsection*{The Escape Lemma}
 \textbf{Lemma} (\texttt{escape\_lemma}).
 \textit{Let $c, z \in \mathbb{C}$. If there exists an $n \in \mathbb{N}$ such that $|f_c^n(z)| > R(c)$, then the orbit of $z$ escapes to infinity:
@@ -27,6 +34,13 @@ Since $\lambda(w) > 1$, the term $\lambda(w)^k$ tends to infinity as $k \to \inf
 
 \subsection*{Orbit Growth}
 A direct consequence of the escape mechanism is that the norm of the orbit cannot decrease once it exceeds the escape radius.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/escape_growth.png}
+    \caption{Orbit Growth. Once the orbit norm exceeds $R(c)$, it grows exponentially (linear on log scale, blue). Bounded orbits fluctuate below $R(c)$ (green).}
+    \label{fig:escape_growth}
+\end{figure}
 
 \textbf{Lemma} (\texttt{norm\_orbit\_ge\_of\_norm\_ge\_R}).
 \textit{If $|z| > R(c)$, then for all $n \in \mathbb{N}$,

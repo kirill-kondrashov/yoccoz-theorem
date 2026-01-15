@@ -1,76 +1,89 @@
-\section{Groetzsch}
-\textit{Source: \texttt{Quadratic/Complex/Groetzsch.lean}}
+\section{Grötzsch's Inequality and Criterion}
+\label{sec:Groetzsch}
 
-This module contains the formal definitions and proofs.
-\subsection*{modulus\_empty}\label{modulus_empty}
-The conformal modulus of an annulus.
-    We treat this as an opaque function for non-empty sets, but explicitly define it as 0 for the empty set.
-    See: [Milnor, Dynamics in One Complex Variable, Appendix B] <https://arxiv.org/pdf/math/9201272.pdf>
-    Local Reference: \texttt{refs/9201272v1.pdf}
-    "Define the modulus mod(C) of such a cylinder to be the ratio $\Delta$y/$\Delta$x of height to circumference."
-    "Corollary B.4. The modulus of a cylinder is a well defined conformal invariant."
-    "It follows that the modulus of an annulus A can be defined as the modulus
-    of any conformally isomorphic cylinder." -/
-opaque raw\_modulus (A : Set $\mathbb{C}$) : $\mathbb{R}$
+This section details the analytical core of the proof: Grötzsch's inequality. This classical result from complex analysis connects the geometry of nested annuli to the convergence properties of their moduli, providing a rigorous criterion for a sequence of sets to shrink to a single point.
 
-/-- The modulus of an annulus.
-    Defined to be 0 for the empty set, and the \texttt{raw\_modulus} otherwise. -/
-noncomputable def modulus (A : Set $\mathbb{C}$) : $\mathbb{R}$ :=
-  if A = $\emptyset$ then 0 else raw\_modulus A
+\subsection*{Conformal Modulus}
 
-/-- The modulus of the empty set is 0.
-    See: [Milnor, Dynamics in One Complex Variable, Appendix B] <https://arxiv.org/pdf/math/9201272.pdf>
-    Local Reference: \texttt{refs/9201272v1.pdf}
-    "By definition an infinite cylinder, that is a cylinder of infinite height, has modulus zero."
-    (Note: Typically empty sets or degenerate annuli are treated as limiting
-    cases or specific values like 0 or infinity depending on convention; Milnor
-    assigns 0 to infinite cylinders in some contexts or infinite modulus to
-    complements of points. Here we assume standard convention for empty
-    annulus).
+The conformal modulus is a fundamental invariant that measures the "thickness" of an annulus. Geometrically, it generalizes the aspect ratio of a rectangle.
 
-\textit{(See code: modulus\_empty)}
+\textbf{Definition} (\texttt{modulus}).
+For an annulus $A \subset \mathbb{C}$, the modulus $\operatorname{mod}(A)$ is a non-negative real number.
+\begin{itemize}
+    \item For a standard annulus $A(r, R) = \{z : r < |z| < R\}$, $\operatorname{mod}(A) = \frac{1}{2\pi} \log(R/r)$.
+    \item It is a conformal invariant: biholomorphic maps preserve modulus.
+    \item For degenerate sets (like the empty set), $\operatorname{mod}(\emptyset) = 0$.
+\end{itemize}
 
-\subsection*{modulus\_nonneg\_ax}\label{modulus_nonneg_ax}
-Modulus is non-negative.
-    This follows from the definition of modulus as a conformal invariant.
-    See: [Milnor, Dynamics in One Complex Variable] <https://arxiv.org/pdf/math/9201272.pdf>
-    Local Reference: \texttt{refs/9201272v1.pdf}
-    "Define the modulus mod(C) of such a cylinder to be the ratio $\Delta$y/$\Delta$x of
-    height to circumference." (Ratio of positive lengths is positive).
+\subsection*{Grötzsch's Inequality}
 
-\textit{(See code: modulus\_nonneg\_ax)}
+The power of the modulus comes from its behavior under disjoint union. Just as area is additive, modulus is \textit{superadditive} for nested disjoint annuli.
 
-\subsection*{groetzsch\_inequality}\label{groetzsch_inequality}
-Grötzsch's Inequality: Superadditivity of modulus for disjoint essential annuli.
-    See: [Milnor, Dynamics in One Complex Variable, Corollary B.5] <https://arxiv.org/pdf/math/9201272.pdf>
-    Local Reference: \texttt{refs/9201272v1.pdf}
-    "Corollary B.5 (Grötzsch Inequality). Suppose that A' $\subset$ A and A'' $\subset$ A are
-    two disjoint annuli, each essentailly embedded in A. Then mod(A') + mod(A'')
-    $\le$ mod(A)."
+\textbf{Axiom} (\texttt{groetzsch\_inequality}).
+\textit{Let $S \subset \mathbb{C}$ be a domain. If $A, B \subset S$ are disjoint annuli essentially embedded in $S$ (separating the inner and outer boundaries), then:
+\[ \operatorname{mod}(A) + \operatorname{mod}(B) \le \operatorname{mod}(S). \]
+}
 
-\textit{(See code: groetzsch\_inequality)}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/groetzsch_packing.png}
+    \caption{Grötzsch Inequality Packing. Disjoint annuli $A_1, A_2, A_3$ packed inside a larger container $S$. The sum of their "thicknesses" (moduli) cannot exceed the thickness of $S$.}
+    \label{fig:groetzsch_packing}
+\end{figure}
 
-\subsection*{modulus\_summable\_of\_nontrivial\_intersection}\label{modulus_summable_of_nontrivial_intersection}
-Grötzsch's Inequality implies summability if the intersection is non-trivial.
-    Proof idea: We construct a sequence of disjoint annuli \texttt{A\_n = P\_n \textbackslash{} P\_\{n+1\}}.
-    By the contrapositive of Grötzsch's criterion (or directly by inequality), if the intersection
-    is non-trivial (contains more than just a point), there is a core \texttt{K} inside all \texttt{P\_n}.
-    The disjoint annuli are all nested around \texttt{K}. Grötzsch's inequality implies their moduli
-    sum up to at most the modulus of the container \texttt{P\_0 \textbackslash{} K}, which is finite.
-    Thus the sum converges.
+\begin{proof}[Geometric Intuition]
+This inequality expresses that we cannot pack arbitrary "conformal thickness" into a finite container. If we stack disjoint annuli inside a larger annulus $S$, their total thickness (modulus) cannot exceed the thickness of $S$.
+\end{proof}
 
-\textit{(See code: modulus\_summable\_of\_nontrivial\_intersection)}
+\subsection*{The Summability Theorem}
 
-\subsection*{groetzsch\_criterion}\label{groetzsch_criterion}
-Grötzsch's Criterion: Divergence of moduli implies point intersection.
-    See: [Milnor, Dynamics in One Complex Variable, Corollary B.7]
-    Local Reference: \texttt{refs/9201272v1.pdf}
-    "Corollary B.7. Suppose that K $\subset$ U as described above. Then K reduces to a single point if and only if the annulus A = U rK has infinite modulus."
+We apply this inequality to a sequence of nested connected sets $P_0 \supset P_1 \supset P_2 \supset \dots$ containing $0$. These sets form the "puzzle pieces" of our construction. We are interested in the annuli formed by their differences: $A_n = P_n \setminus P_{n+1}$.
 
-    Proof idea: We argue by contrapositive. If the intersection is non-trivial (contains more than just \texttt{\{0\}}),
-    then \texttt{modulus\_summable\_of\_nontrivial\_intersection} implies the sum of moduli converges.
-    This contradicts the hypothesis that the sum diverges.
-    Therefore, the intersection must be trivial (equal to \texttt{\{0\}}).
+\textbf{Theorem} (\texttt{modulus\_summable\_of\_nontrivial\_intersection}).
+\textit{If the intersection $K = \bigcap_{n} P_n$ is non-trivial (contains more than just $\{0\}$), then the sum of the moduli converges:
+\[ \sum_{n=0}^{\infty} \operatorname{mod}(A_n) < \infty. \]
+}
 
-\textit{(See code: groetzsch\_criterion)}
+\begin{proof}[Proof Idea]
+(See Lean: \texttt{modulus\_summable\_of\_nontrivial\_intersection})
+
+If $K$ is non-trivial, it serves as a "hard core" inside all $P_n$. The annuli $A_n$ are thus all contained in the fixed domain $P_0 \setminus K$.
+Since the $A_n$ are disjoint, Grötzsch's inequality implies that for any $N$:
+\[ \sum_{n=0}^N \operatorname{mod}(A_n) \le \operatorname{mod}(P_0 \setminus K). \]
+Since $K$ contains points other than $0$, the container $P_0 \setminus K$ is not the punctured plane (which would have infinite modulus) but a domain with finite modulus. Therefore, the partial sums are bounded, and the series converges.
+\end{proof}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/groetzsch_viz.png}
+    \caption{Geometric Interpretation. Left: A non-trivial core $K$ (red) limits the available space, forcing the moduli of the nested annuli $A_n$ to decay rapidly ($\sum < \infty$). Right: If the intersection is a single point $\{0\}$, there is no inner barrier, allowing the moduli sum to diverge ($\sum = \infty$).}
+    \label{fig:groetzsch}
+\end{figure}
+
+\subsection*{Grötzsch's Criterion}
+
+By taking the contrapositive of the summability theorem, we obtain a sufficient condition for the intersection to be a single point. This is the tool we use to prove Yoccoz's theorem.
+
+\textbf{Theorem} (\texttt{groetzsch\_criterion}).
+\textit{Let $\{P_n\}$ be a nested sequence of connected sets containing $0$. If the sum of the moduli of the difference annuli diverges:
+\[ \sum_{n=0}^{\infty} \operatorname{mod}(P_n \setminus P_{n+1}) = \infty, \]
+then the intersection consists only of the point $0$:
+\[ \bigcap_{n=0}^{\infty} P_n = \{0\}. \]
+}
+
+\begin{proof}[Proof Idea]
+(See Lean: \texttt{groetzsch\_criterion})
+
+Assume for contradiction that the intersection is not $\{0\}$. Since $0$ is in every set, the intersection must contain some other point $z \ne 0$. This implies the intersection is non-trivial.
+By the Summability Theorem above, a non-trivial intersection implies that $\sum \operatorname{mod}(A_n) < \infty$.
+But this contradicts the hypothesis that the sum is infinite.
+Therefore, the intersection must be exactly $\{0\}$.
+\end{proof}
+
+\subsection*{Significance for MLC}
+This criterion bridges the gap between combinatorics and topology:
+\begin{itemize}
+    \item \textbf{Combinatorics}: We will show that for non-renormalizable parameters, the puzzle pieces recur frequently enough to generate infinite total modulus.
+    \item \textbf{Topology}: Grötzsch's Criterion then guarantees that the pieces shrink to a point, proving local connectivity at the critical parameter $c$.
+\end{itemize}
 

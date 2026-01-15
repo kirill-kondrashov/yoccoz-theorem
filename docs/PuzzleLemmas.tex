@@ -1,4 +1,76 @@
-\section{PuzzleLemmas}
-\textit{Source: \texttt{Quadratic/Complex/PuzzleLemmas.lean}}
+\section{Puzzle Properties}
+\label{sec:PuzzleLemmas}
 
-This module contains the formal definitions and proofs.
+This section establishes the basic topological properties of the puzzle pieces defined in \ref{sec:Puzzle}.
+
+\subsection{Nesting Property}
+
+A crucial feature of the puzzle construction is that pieces at higher depth are contained in pieces of lower depth.
+
+\begin{lemma}[Nesting]
+For any $n \in \mathbb{N}$, the puzzle piece at depth $n+1$ is contained in the piece at depth $n$:
+\[ P_{n+1}(0) \subseteq P_n(0). \]
+\end{lemma}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/puzzle_nesting.png}
+    \caption{Nesting Property. The puzzle pieces $P_n(0)$ (contours) form a nested sequence. $P_4 \subset P_3 \subset P_2 \subset P_1$. Each piece is contained within the previous one.}
+    \label{fig:puzzle_nesting}
+\end{figure}
+
+\begin{proof}[Proof Idea]
+(See Lean: \texttt{dynamical\_puzzle\_piece\_nested})
+
+The puzzle piece $P_n(0)$ is a component of the sublevel set $U_n = \{ w \mid G(w) < 2^{-n} \}$.
+Since $2^{-(n+1)} < 2^{-n}$, the sublevel set $U_{n+1}$ is a subset of $U_n$.
+The connected component of a point in a subset is necessarily contained in the connected component of that point in the superset.
+\end{proof}
+
+\subsection{Behavior for Mandelbrot Set}
+
+For parameters in the Mandelbrot set, the critical point never escapes, so it remains deep inside the puzzle pieces.
+
+\begin{lemma}[Persistence]
+If $c \in \mathcal{M}$, then for all $n$, the critical point $0$ is contained in $P_n(0)$.
+\end{lemma}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/puzzle_persistence.png}
+    \caption{Persistence Property. For $c \in \mathcal{M}$ (Douady Rabbit shown), the critical point $0$ (white dot) is inside the filled Julia set (black). Since $G_c(0)=0$, it is contained in every puzzle piece $P_n(0)$ (contours).}
+    \label{fig:puzzle_persistence}
+\end{figure}
+
+\begin{proof}[Proof Idea]
+(See Lean: \texttt{mem\_dynamical\_puzzle\_piece\_self})
+
+If $c \in \mathcal{M}$, then the orbit of 0 is bounded, so $0$ lies in the filled Julia set $K(c)$.
+By the property of the Green's function, $z \in K(c) \iff G_c(z) = 0$.
+Since $0 < 2^{-n}$ for all $n$, $0$ satisfies the condition $G_c(0) < 2^{-n}$ and is thus in the puzzle piece.
+\end{proof}
+
+\subsection{Behavior for Escaping Parameters}
+
+Conversely, if the parameter is outside the Mandelbrot set, the Green's function at the critical point is positive, and eventually the puzzle pieces exclude it.
+
+\begin{lemma}[Eventual Empty]
+If $c \notin \mathcal{M}$, there exists some $N$ such that for all $n \ge N$,
+\[ 0 \notin P_n(0). \]
+\end{lemma}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/puzzle_empty.png}
+    \caption{Eventual Empty Property. For $c \notin \mathcal{M}$, the critical point $0$ has positive Green's function potential $G_c(0) > 0$. As $n$ increases, the threshold $2^{-n}$ drops below $G_c(0)$, so $0$ eventually falls outside $P_n(0)$.}
+    \label{fig:puzzle_empty}
+\end{figure}
+
+\begin{proof}[Proof Idea]
+(See Lean: \texttt{dynamical\_puzzle\_piece\_empty\_of\_large\_n})
+
+If $c \notin \mathcal{M}$, then $G_c(0) > 0$.
+The sequence $2^{-n}$ converges to 0.
+Therefore, for sufficiently large $n$, we have $2^{-n} < G_c(0)$.
+The condition $G_c(0) < 2^{-n}$ fails, so $0$ is not in the sublevel set, and thus not in $P_n(0)$.
+\end{proof}

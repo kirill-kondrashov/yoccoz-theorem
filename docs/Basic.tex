@@ -8,6 +8,14 @@ We consider the family of quadratic polynomials parametrized by $c \in \mathbb{C
 \[
 f_c(z) = z^2 + c
 \]
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/basic_mapping.png}
+    \caption{The Quadratic Map $z \mapsto z^2 + c$. The grid lines in the domain (blue) are mapped to parabolic curves in the range (red), illustrating the "folding" nature of the map.}
+    \label{fig:basic_mapping}
+\end{figure}
+
 The forward orbit of a point $z_0 \in \mathbb{C}$ under $f_c$ is the sequence defined by:
 \[
 \text{orbit}_c(z_0, n) = f_c^{\circ n}(z_0)
@@ -26,10 +34,24 @@ The \textbf{Julia Set} $J(c)$ is defined as the topological boundary of $K(c)$:
 J(c) = \partial K(c)
 \]
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/basic_julia.png}
+    \caption{The Filled Julia Set $K(c)$ (black) and its boundary, the Julia Set $J(c)$, for $c \approx -0.73 + 0.19i$. Points in black have bounded orbits; colored regions represent the basin of infinity with potential levels.}
+    \label{fig:basic_julia}
+\end{figure}
+
 The \textbf{Mandelbrot Set} $\mathcal{M}$ is the set of parameters $c$ for which the critical point $0$ has a bounded orbit:
 \[
 \mathcal{M} = \{ c \in \mathbb{C} \mid 0 \in K(c) \}
 \]
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/basic_mandelbrot.png}
+    \caption{The Mandelbrot Set $\mathcal{M}$ (black). It represents the set of parameters $c$ for which the Julia set $K(c)$ is connected.}
+    \label{fig:basic_mandelbrot}
+\end{figure}
 
 \subsection{Escape Radius}
 We define an escape radius $R(c)$ depending on the parameter $c$:
@@ -45,3 +67,10 @@ We assume two deep results from the theory of complex dynamics as axioms for thi
     \item \textbf{Connectivity of $\mathcal{M}$}: The Mandelbrot set $\mathcal{M}$ is connected (Douady and Hubbard, 1984).
     \item \textbf{Connectivity of $K(c)$}: For any $c \in \mathcal{M}$, the filled Julia set $K(c)$ is connected (Douady and Hubbard, 1984).
 \end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/basic_connectivity.png}
+    \caption{Connectivity Dichotomy. Left: For $c \in \mathcal{M}$, $K(c)$ is connected. Right: For $c \notin \mathcal{M}$, $K(c)$ is a Cantor set (disconnected dust).}
+    \label{fig:basic_connectivity}
+\end{figure}

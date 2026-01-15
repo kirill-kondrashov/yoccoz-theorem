@@ -1,62 +1,65 @@
-\section{Green}
-\textit{Source: \texttt{Quadratic/Complex/Green.lean}}
+\section{Green's Function}
+\label{sec:Green}
 
-\begin{quotation}
-\textbf{Green's Function for the Quadratic Family}
+The Green's function $G_c(z)$ is a key tool in complex dynamics, providing a potential-theoretic measure of the escape rate to infinity for the quadratic map $f_c(z) = z^2 + c$.
 
-This file defines the Green's function \texttt{G\_c(z)} for the filled Julia set \texttt{K(c)}.
-The Green's function measures the rate of escape to infinity.
+\subsection*{Definition}
 
-\textbf{Connection to MLC}
+For any parameter $c \in \mathbb{C}$, the Green's function is defined as the limit of the normalized logarithmic potential:
+\[
+G_c(z) = \lim_{n \to \infty} \frac{1}{2^n} \log^+ |f_c^n(z)|
+\]
+where $\log^+(x) = \max(0, \log x)$. In Lean, this is formalized using the sequence \texttt{potential\_seq}:
+\[ \text{\texttt{potential\_seq}}(c, z, n) = 2^{-n} \log |f_c^n(z)| \]
+(Note: For large $z$, $|f_c^n(z)| \ge 1$, so the $\log$ is non-negative).
 
-The Green's function is used to construct Yoccoz puzzles, which are central to the proof of the
-Mandelbrot Local Connectivity (MLC) conjecture.
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/green_function_plots.png}
+    \caption{Visualization of the Green's function for $c=0$ (unit disk, left) and $c=-1$ (Basilica, right). The black region represents the filled Julia set $K(c)$ where $G_c(z)=0$. The equipotential lines in the basin of infinity are shown in white.}
+    \label{fig:green_function}
+\end{figure}
 
-*   **Equipotentials and Rays**: Level sets of \texttt{G\_c} (equipotentials) and their orthogonal trajectories
-    (external rays) form a grid on \texttt{$\mathbb{C}$ \textbackslash{} K(c)}.
-*   **Yoccoz Puzzles**: Intersections of these curves define puzzle pieces used to analyze the combinatorics
-    of orbits.
-*   **Böttcher Coordinates**: \texttt{G\_c} is the real part of the Böttcher coordinate, conjugating \texttt{f\_c} to \texttt{z $\mapsto$ z\textasciicircum{}2}
-    near infinity.
+\subsection*{Functional Equation}
+\textbf{Lemma} (\texttt{green\_function\_functional\_eq}).
+\textit{The Green's function satisfies the functional equation:}
+\[ G_c(f_c(z)) = 2 G_c(z). \]
 
-\textbf{Main Definitions}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/green_functional_eq.png}
+    \caption{Functional Equation $G(f(z)) = 2G(z)$. The map $f_c$ transforms the equipotential curve at level $L=0.5$ (blue) to the curve at level $2L=1.0$ (red).}
+    \label{fig:green_functional_eq}
+\end{figure}
 
-* \texttt{potential\_seq c z n}: The sequence \texttt{1/2\textasciicircum{}n * log ‖f\_c\textasciicircum{}n(z)‖}.
-* \texttt{green\_function c z}: The limit of \texttt{potential\_seq} as \texttt{n $\to$ ∞}.
+\begin{proof}[Proof Idea]
+The factor of 2 comes from the squaring nature of the map near infinity:
+\[
+G_c(f_c(z)) = \lim_{n \to \infty} \frac{1}{2^n} \log |f_c^{n+1}(z)| = 2 \lim_{n \to \infty} \frac{1}{2^{n+1}} \log |f_c^{n+1}(z)| = 2 G_c(z).
+\]
+\end{proof}
 
-\textbf{Main Results (Sketched)}
+\subsection*{Characterization of the Filled Julia Set}
+The zero set of the Green's function precisely recovers the filled Julia set $K(c)$.
 
-* \texttt{green\_function\_eq\_zero\_iff\_mem\_K}: \texttt{G\_c(z) = 0 $\leftrightarrow$ z $\in$ K(c)}.
-* \texttt{green\_function\_functional\_eq}: \texttt{G\_c(f\_c(z)) = 2 * G\_c(z)}.
-* \texttt{green\_function\_harmonic}: \texttt{G\_c} is harmonic on \texttt{$\mathbb{C}$ \textbackslash{} K(c)}.
-\end{quotation}
+\textbf{Theorem} (\texttt{green\_function\_eq\_zero\_iff\_mem\_K}).
+\textit{For any $z \in \mathbb{C}$,}
+\[ G_c(z) = 0 \iff z \in K(c). \]
 
-\subsection*{green\_function\_functional\_eq}\label{green_function_functional_eq}
-The Green's function satisfies the functional equation \texttt{G(f(z)) = 2 * G(z)}.
-    Proof idea:
-    \texttt{G(f(z)) = lim\_\{n$\to$∞\} 1/2\textasciicircum{}n log |f\textasciicircum{}n(f(z))|}
-    \texttt{= lim\_\{n$\to$∞\} 1/2\textasciicircum{}n log |f\textasciicircum{}\{n+1\}(z)|}
-    \texttt{= lim\_\{n$\to$∞\} 2 * (1/2\textasciicircum{}\{n+1\} log |f\textasciicircum{}\{n+1\}(z)|)}
-    \texttt{= 2 * G(z)}.
+\begin{proof}[Proof Idea]
+(See Lean: \texttt{green\_function\_eq\_zero\_iff\_mem\_K})
+\begin{itemize}
+    \item ($\Leftarrow$) If $z \in K(c)$, the orbit $f_c^n(z)$ is bounded. Thus $\frac{1}{2^n} \log |f_c^n(z)| \to 0$.
+    \item ($\Rightarrow$) If $z \notin K(c)$, the orbit escapes to infinity. Using the escape estimates (see Section \ref{sec:Escape}), one can show the potential converges to a strictly positive value.
+\end{itemize}
+\end{proof}
 
-\textit{(See code: green\_function\_functional\_eq)}
+\subsection*{Basin of Infinity}
+It follows that the Green's function is strictly positive on the basin of infinity $A(\infty) = \mathbb{C} \setminus K(c)$.
 
-\subsection*{green\_function\_nonneg}\label{green_function_nonneg}
-The Green's function is non-negative.
+\textbf{Lemma} (\texttt{green\_function\_pos\_iff\_not\_mem\_K}).
+\[ G_c(z) > 0 \iff z \notin K(c). \]
 
-\textit{(See code: green\_function\_nonneg)}
-
-\subsection*{green\_function\_eq\_zero\_iff\_mem\_K}\label{green_function_eq_zero_iff_mem_K}
-A point is in the filled Julia set iff its Green's function is zero.
-    Proof idea:
-    *   \texttt{$\to$}: If \texttt{G(z) = 0}, suppose \texttt{z $\notin$ K(c)}. Then \texttt{z} escapes, and we can show \texttt{G(z) > 0}
-        (using the positive growth rate outside \texttt{K(c)}). Contradiction.
-    *   \texttt{←}: If \texttt{z $\in$ K(c)}, the orbit is bounded, so \texttt{potential\_seq} converges to 0.
-
-\textit{(See code: green\_function\_eq\_zero\_iff\_mem\_K)}
-
-\subsection*{green\_function\_pos\_iff\_not\_mem\_K}\label{green_function_pos_iff_not_mem_K}
-The Green's function is positive on the basin of infinity.
-
-\textit{(See code: green\_function\_pos\_iff\_not\_mem\_K)}
+\subsection*{Harmonicity}
+Although not detailed in the sketched results here, the Green's function is harmonic on the domain $\mathbb{C} \setminus K(c)$. This property allows the definition of harmonic conjugate lines (equipotentials) and orthogonal gradient lines (external rays), which form the coordinate grid for Yoccoz puzzles.
 
