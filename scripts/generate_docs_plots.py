@@ -264,7 +264,7 @@ def plot_basic_mapping():
         w_line = z_line**2 + c
         axes[1].plot(w_line.real, w_line.imag, 'r-', alpha=0.3)
         
-    axes[1].set_title(f"Range ($z \mapsto z^2 + {c}$)")
+    axes[1].set_title(r"Range ($z \mapsto z^2 + " + f"{c}" + r"$)")
     axes[1].set_aspect('equal')
     axes[1].grid(True)
     
@@ -276,42 +276,32 @@ def plot_basic_connectivity():
     print("Generating basic_connectivity.png...")
     # Connected (c in M)
     c1 = -0.12 + 0.75j
-    # Disconnected (c not in M) - pick a value further out to fragment more clearly
-    c2 = -0.72 + 0.3j # Near boundary but maybe not fragmented enough?
-    # Better: c = 0.3 is hyperbolic, simple connected.
-    # c = -2 is tip.
-    # c = i is outside (M goes to ~0.7i).
-    # Let's pick something clearly outside like 0.3 + 0.6i (rabbit is near -0.12+0.75)
-    # Actually, for Cantor dust, we need c outside M. 
-    # Let's try c = -0.1 + 0.8j. M top is around 0.6-0.7 for Re=-0.1.
-    c2 = -0.1 + 0.8j 
+    c2 = -0.7 + 0.8j
     
     # Increase resolution for dust
-    extent = [-1.5, 1.5, -1.5, 1.5]
-    x = np.linspace(extent[0], extent[1], 500)
-    y = np.linspace(extent[2], extent[3], 500)
+    extent = [-1.5, 1.5, -1.2, 1.2]
+    x = np.linspace(extent[0], extent[1], 800)
+    y = np.linspace(extent[2], extent[3], 640)
     X, Y = np.meshgrid(x, y)
     Z = X + 1j * Y
     
     G1 = green_function(c1, Z, max_iter=150)
-    G2 = green_function(c2, Z, max_iter=150)
+    G2 = green_function(c2, Z, max_iter=200)
     
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     
-    axes[0].imshow(G1, extent=extent, origin='lower', cmap='bone_r', vmax=0.5)
+    axes[0].imshow(G1, extent=extent, origin='lower', cmap='bone_r', vmin=0, vmax=0.5)
     axes[0].contourf(X, Y, G1, levels=[0, 0.001], colors=['black'])
-    axes[0].set_title(f"Connected $K(c)$\n$c={c1} \in \mathcal{{M}}$")
+    axes[0].set_title(r"Connected $K(c)$" + "\n" + r"$c=" + f"{c1}" + r" \in \mathcal{M}$")
     
-    # For Cantor set, we want to see many small islands.
-    # If G=0 is too small, we might miss it.
-    # Let's visualize the level sets close to 0 to hint at the dust.
-    axes[1].imshow(G2, extent=extent, origin='lower', cmap='bone_r', vmax=0.5)
-    # Plot contours close to 0 to show the dust accumulating
-    axes[1].contour(X, Y, G2, levels=[0.005, 0.01, 0.02], colors=['black', 'black', 'black'], linewidths=0.5, alpha=0.5)
-    # Fill "inside" very strictly
-    axes[1].contourf(X, Y, G2, levels=[0, 0.0001], colors=['black'])
+    # For Cantor set
+    axes[1].imshow(G2, extent=extent, origin='lower', cmap='bone_r', vmin=0, vmax=0.5)
+    # Use finer contours to show the fragmentation
+    axes[1].contour(X, Y, G2, levels=[0.002, 0.005, 0.01, 0.02, 0.05], colors=['black'], linewidths=0.3, alpha=0.7)
+    # Fill very strictly
+    axes[1].contourf(X, Y, G2, levels=[0, 0.001], colors=['black'])
     
-    axes[1].set_title(f"Disconnected $K(c)$ (Cantor Dust)\n$c={c2} \\notin \mathcal{{M}}$")
+    axes[1].set_title(r"Disconnected $K(c)$ (Cantor Dust)" + "\n" + r"$c=" + f"{c2}" + r" \notin \mathcal{M}$")
     
     plt.tight_layout()
     plt.savefig('../docs/images/basic_connectivity.png', dpi=300) # Higher DPI for dust
@@ -458,8 +448,8 @@ def plot_yoccoz_contradiction():
     
     fig, ax = plt.subplots(figsize=(6, 4))
     
-    ax.plot(n, moduli_case1, 'b-o', label='Case 1 ($c \in \mathcal{M}$): $\sum \infty$')
-    ax.plot(n, moduli_case2, 'r-x', label='Case 2 ($c \\notin \mathcal{M}$): Finite Sum')
+    ax.plot(n, moduli_case1, 'b-o', label=r'Case 1 ($c \in \mathcal{M}$): $\sum \infty$')
+    ax.plot(n, moduli_case2, 'r-x', label=r'Case 2 ($c \notin \mathcal{M}$): Finite Sum')
     
     ax.axhline(0, color='black', linewidth=0.5)
     ax.set_xlabel('Depth n')
