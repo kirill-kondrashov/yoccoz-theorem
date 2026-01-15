@@ -40,6 +40,14 @@ If $c$ is outside the Mandelbrot set, the orbit of $0$ escapes to infinity. As s
 If the sequence becomes empty, the moduli of the difference annuli would eventually be $0$ (since $\operatorname{mod}(\emptyset) = 0$).
 This would imply the sum is finite: $\sum \operatorname{mod}(A_n) < \infty$.
 But this contradicts the assumption that $c$ is non-renormalizable (divergent sum). Thus, this case cannot occur for a non-renormalizable parameter.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/yoccoz_proof_contradiction.png}
+    \caption{Proof by Contradiction. Case 1 (Blue): Moduli sum diverges ($\sum \infty$), consistent with non-renormalizable hypothesis. Case 2 (Red): If $c \notin \mathcal{M}$, the puzzle pieces eventually become empty, causing moduli to drop to zero and the sum to be finite ($\sum < \infty$). This contradicts the hypothesis, proving $c$ must be in $\mathcal{M}$ (and intersection is $\{0\}$).}
+    \label{fig:yoccoz_proof_contradiction}
+\end{figure}
+
 \end{proof}
 
 \begin{figure}[ht]
