@@ -13,6 +13,13 @@ where $\log^+(x) = \max(0, \log x)$. In Lean, this is formalized using the seque
 \[ \text{\texttt{potential\_seq}}(c, z, n) = 2^{-n} \log |f_c^n(z)| \]
 (Note: For large $z$, $|f_c^n(z)| \ge 1$, so the $\log$ is non-negative).
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/green_function_plots.png}
+    \caption{Visualization of the Green's function for $c=0$ (unit disk, left) and $c=-1$ (Basilica, right). The black region represents the filled Julia set $K(c)$ where $G_c(z)=0$. The equipotential lines in the basin of infinity are shown in white.}
+    \label{fig:green_function}
+\end{figure}
+
 \subsection*{Functional Equation}
 \textbf{Lemma} (\texttt{green\_function\_functional\_eq}).
 \textit{The Green's function satisfies the functional equation:}
