@@ -7,10 +7,10 @@ DOCS_DIR = Path("../docs")
 DOCS_DIR.mkdir(exist_ok=True)
 
 FILES = [
-    "MainConjecture", "Yoccoz", "InfinitelyRenormalizable", "LcAtOfShrink",
+    "Yoccoz",
     "Quadratic/Complex/Groetzsch", "Quadratic/Complex/Basic", "Quadratic/Complex/Green",
     "Quadratic/Complex/GreenLemmas", "Quadratic/Complex/Puzzle", "Quadratic/Complex/PuzzleLemmas",
-    "Quadratic/Complex/PuzzleLemmas2", "Quadratic/Complex/Escape"
+    "Quadratic/Complex/Escape"
 ]
 
 def sanitize_tex(text):

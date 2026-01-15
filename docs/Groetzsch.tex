@@ -1,280 +1,90 @@
-\section{Grötzsch's Inequality and Criterion}
-\label{sec:Groetzsch}
+\section{Groetzsch}
+\textit{Source: \texttt{Quadratic/Complex/Groetzsch.lean}}
 
-This section describes the verification of the file \texttt{Mlc/Quadratic/Complex/Groetzsch.lean}. It formalizes the conformal modulus of an annulus and establishes the key analytical tool for the proof: Grötzsch's Inequality and its associated convergence criterion.
-
-\subsection{Modulus Definition}
-
-We begin by defining the modulus of an annulus. Following Milnor (Appendix B), the modulus is a conformal invariant.
-
-\begin{lstlisting}[language=Lean]
-opaque raw_modulus (A : Set ℂ) : ℝ
+This module contains the formal definitions and proofs.
+\subsection*{modulus\_empty}\label{modulus_empty}
+The conformal modulus of an annulus.
+    We treat this as an opaque function for non-empty sets, but explicitly define it as 0 for the empty set.
+    See: [Milnor, Dynamics in One Complex Variable, Appendix B] <https://arxiv.org/pdf/math/9201272.pdf>
+    Local Reference: \texttt{refs/9201272v1.pdf}
+    "Define the modulus mod(C) of such a cylinder to be the ratio $\Delta$y/$\Delta$x of height to circumference."
+    "Corollary B.4. The modulus of a cylinder is a well defined conformal invariant."
+    "It follows that the modulus of an annulus A can be defined as the modulus
+    of any conformally isomorphic cylinder." -/
+opaque raw\_modulus (A : Set $\mathbb{C}$) : $\mathbb{R}$
 
 /-- The modulus of an annulus.
-    Defined to be 0 for the empty set, and the `raw_modulus` otherwise. -/
-noncomputable def modulus (A : Set ℂ) : ℝ :=
-  if A = ∅ then 0 else raw_modulus A
-\end{lstlisting}
+    Defined to be 0 for the empty set, and the \texttt{raw\_modulus} otherwise. -/
+noncomputable def modulus (A : Set $\mathbb{C}$) : $\mathbb{R}$ :=
+  if A = $\emptyset$ then 0 else raw\_modulus A
 
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item \texttt{raw\_modulus (A : Set ℂ)}: This is an opaque definition representing the conformal modulus. In a full formalization from first principles, this would be defined via extremal length or conformal mapping to a standard cylinder. Here, we treat it axiomatically as a real-valued function.
-    \item \texttt{modulus}: A wrapper around \texttt{raw\_modulus} that explicitly handles the empty set case, ensuring \texttt{modulus ∅ = 0}.
-\end{itemize}
+/-- The modulus of the empty set is 0.
+    See: [Milnor, Dynamics in One Complex Variable, Appendix B] <https://arxiv.org/pdf/math/9201272.pdf>
+    Local Reference: \texttt{refs/9201272v1.pdf}
+    "By definition an infinite cylinder, that is a cylinder of infinite height, has modulus zero."
+    (Note: Typically empty sets or degenerate annuli are treated as limiting
+    cases or specific values like 0 or infinity depending on convention; Milnor
+    assigns 0 to infinite cylinders in some contexts or infinite modulus to
+    complements of points. Here we assume standard convention for empty
+    annulus).
 
-We establish basic properties of the modulus:
+\textit{(See code: modulus\_empty)}
 
-\begin{lstlisting}[language=Lean]
-theorem modulus_empty : modulus ∅ = 0 := by
-  simp [modulus]
+\subsection*{modulus\_summable\_of\_nontrivial\_intersection}\label{modulus_summable_of_nontrivial_intersection}
+Modulus is non-negative.
+    This follows from the definition of modulus as a conformal invariant.
+    See: [Milnor, Dynamics in One Complex Variable] <https://arxiv.org/pdf/math/9201272.pdf>
+    Local Reference: \texttt{refs/9201272v1.pdf}
+    "Define the modulus mod(C) of such a cylinder to be the ratio $\Delta$y/$\Delta$x of
+    height to circumference." (Ratio of positive lengths is positive). -/
+axiom modulus\_nonneg\_ax (A : Set $\mathbb{C}$) : 0 $\le$ raw\_modulus A
 
-axiom modulus_nonneg_ax (A : Set ℂ) : 0 ≤ raw_modulus A
-
-theorem modulus_nonneg (A : Set ℂ) : 0 ≤ modulus A := by
+theorem modulus\_nonneg (A : Set $\mathbb{C}$) : 0 $\le$ modulus A := by
   unfold modulus
-  split_ifs
-  · exact le_refl 0
-  · exact modulus_nonneg_ax A
-\end{lstlisting}
+  split\_ifs
+  · exact le\_refl 0
+  · exact modulus\_nonneg\_ax A
 
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item \texttt{modulus\_empty}: Trivially true by the definition of \texttt{modulus}.
-    \item \texttt{modulus\_nonneg}: Ensures the modulus is always non-negative. This is split into cases: 0 for the empty set, and non-negative by axiom for non-empty sets.
-\end{itemize}
+/-- Grötzsch's Inequality: Superadditivity of modulus for disjoint essential annuli.
+    See: [Milnor, Dynamics in One Complex Variable, Corollary B.5] <https://arxiv.org/pdf/math/9201272.pdf>
+    Local Reference: \texttt{refs/9201272v1.pdf}
+    "Corollary B.5 (Grötzsch Inequality). Suppose that A' $\subset$ A and A'' $\subset$ A are
+    two disjoint annuli, each essentailly embedded in A. Then mod(A') + mod(A'')
+    $\le$ mod(A)." -/
+axiom groetzsch\_inequality \{A B S : Set $\mathbb{C}$\} (h\_disj : Disjoint A B) (h\_sub : A $\cup$ B $\subseteq$ S) :
+    modulus A + modulus B $\le$ modulus S
 
-\begin{proof}
-If $A=\varnothing$ then $\text{modulus}(A)=0$, so $0\le \text{modulus}(A)$. Otherwise $\text{modulus}(A)=\text{raw\_modulus}(A)$ and by the axiom $0\le \text{raw\_modulus}(A)$, hence $0\le \text{modulus}(A)$.
-\end{proof}
-
-\subsection{Grötzsch's Inequality}
-
-The fundamental property of the modulus used here is superadditivity for disjoint nested annuli. This is known as Grötzsch's Inequality.
-
-\begin{lstlisting}[language=Lean]
-axiom groetzsch_inequality {A B S : Set ℂ} (h_disj : Disjoint A B) (h_sub : A ∪ B ⊆ S) :
-    modulus A + modulus B ≤ modulus S
-\end{lstlisting}
-
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item \texttt{h\_disj}: Requires the sub-annuli $A$ and $B$ to be disjoint.
-    \item \texttt{h\_sub}: Requires both $A$ and $B$ to be contained in the "parent" annulus $S$.
-    \item The conclusion \texttt{modulus A + modulus B ≤ modulus S} states that the sum of moduli of disjoint sub-annuli cannot exceed the modulus of the container. This captures the intuition that modulus measures the "thickness" of the annulus.
-\end{itemize}
-
-\subsection{Helper Lemma: Nested Subsets}
-
-A utility lemma is needed to handle nested sequences of sets.
-
-\begin{lstlisting}[language=Lean]
-lemma subset_of_le_nested {P : ℕ → Set ℂ} (h_nested : ∀ n, P (n + 1) ⊆ P n)
-    {i j : ℕ} (hij : i ≤ j) : P j ⊆ P i := by
-  have h_diff : ∃ k, j = i + k := Nat.exists_eq_add_of_le hij
-  obtain ⟨k, rfl⟩ := h_diff
+lemma subset\_of\_le\_nested \{P : $\mathbb{N}$ $\to$ Set $\mathbb{C}$\} (h\_nested : $\forall$ n, P (n + 1) $\subseteq$ P n)
+    \{i j : $\mathbb{N}$\} (hij : i $\le$ j) : P j $\subseteq$ P i := by
+  have h\_diff : $\exists$ k, j = i + k := Nat.exists\_eq\_add\_of\_le hij
+  obtain $\langle$k, rfl$\rangle$ := h\_diff
   clear hij
   induction k with
-  | zero => exact subset_refl _
+  | zero => exact subset\_refl \_
   | succ m ih =>
-    rw [Nat.add_succ]
-    apply subset_trans (h_nested (i + m)) ih
-\end{lstlisting}
+    rw [Nat.add\_succ]
+    apply subset\_trans (h\_nested (i + m)) ih
 
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item This lemma generalizes the step-by-step nesting \texttt{P (n+1) ⊆ P n} to arbitrary indices \texttt{i ≤ j}.
-    \item The proof proceeds by induction on the difference $k = j - i$.
-    \item \texttt{Nat.exists\_eq\_add\_of\_le}: Extracts the difference $k$.
-    \item Base case (\texttt{zero}): $P_i \subseteq P_i$ is reflexive.
-    \item Inductive step (\texttt{succ}): Uses transitivity: $P_{i+m+1} \subseteq P_{i+m} \subseteq P_i$.
-\end{itemize}
+/-- Grötzsch's Inequality implies summability if the intersection is non-trivial.
+    Proof idea: We construct a sequence of disjoint annuli \texttt{A\_n = P\_n \textbackslash{} P\_\{n+1\}}.
+    By the contrapositive of Grötzsch's criterion (or directly by inequality), if the intersection
+    is non-trivial (contains more than just a point), there is a core \texttt{K} inside all \texttt{P\_n}.
+    The disjoint annuli are all nested around \texttt{K}. Grötzsch's inequality implies their moduli
+    sum up to at most the modulus of the container \texttt{P\_0 \textbackslash{} K}, which is finite.
+    Thus the sum converges.
 
-\begin{proof}
-Write $j=i+k$ and proceed by induction on $k$. The base case $k=0$ is trivial since $P_i\subseteq P_i$. For the inductive step, assume $P_{i+m+1}\subseteq P_i$ when $j=i+m$; then using $P_{i+m+1}\subseteq P_{i+m}$ and the transitive inclusion $P_{i+m}\subseteq P_i$ yields $P_{i+m+1}\subseteq P_i$, completing the induction.
-\end{proof}
+\textit{(See code: modulus\_summable\_of\_nontrivial\_intersection)}
 
-\subsection{Summability from Non-trivial Intersection}
+\subsection*{groetzsch\_criterion}\label{groetzsch_criterion}
+Grötzsch's Criterion: Divergence of moduli implies point intersection.
+    See: [Milnor, Dynamics in One Complex Variable, Corollary B.7]
+    Local Reference: \texttt{refs/9201272v1.pdf}
+    "Corollary B.7. Suppose that K $\subset$ U as described above. Then K reduces to a single point if and only if the annulus A = U rK has infinite modulus."
 
-The core logical step for the criterion is proving that if the intersection of nested sets is "fat" (non-trivial), the sum of moduli of the difference annuli must converge.
+    Proof idea: We argue by contrapositive. If the intersection is non-trivial (contains more than just \texttt{\{0\}}),
+    then \texttt{modulus\_summable\_of\_nontrivial\_intersection} implies the sum of moduli converges.
+    This contradicts the hypothesis that the sum diverges.
+    Therefore, the intersection must be trivial (equal to \texttt{\{0\}}).
 
-\begin{lstlisting}[language=Lean]
-theorem modulus_summable_of_nontrivial_intersection {P : ℕ → Set ℂ}
-    (h_nested : ∀ n, P (n + 1) ⊆ P n)
-    (_h_conn : ∀ n, IsConnected (P n))
-    (_h_nontriv : Set.Nontrivial (⋂ n, P n)) :
-    Summable (fun n => modulus (P n \ P (n + 1))) := by
-  let A := fun n => P n \ P (n + 1)
-  have h_disj : ∀ i j, i < j → Disjoint (A i) (A j) := by
-    intro i j hij
-    rw [Set.disjoint_left]
-    intro z hi hj
-    simp [A] at hi hj
-    have h_sub : P j ⊆ P (i + 1) := subset_of_le_nested h_nested hij
-    have z_in_P_j := hj.1
-    have z_in_P_i_1 := h_sub z_in_P_j
-    have z_not_in_P_i_1 := hi.2
-    contradiction
+\textit{(See code: groetzsch\_criterion)}
 
-  have h_union_sub : ∀ N, (⋃ n ∈ Finset.range N, A n) ⊆ P 0 \ P N := by
-    intro N
-    rw [Set.subset_def]
-    intro z hz
-    simp at hz
-    obtain ⟨n, hn_lt, hn_z⟩ := hz
-    simp [A] at hn_z
-    constructor
-    · -- z ∈ P 0
-      have h_sub : P n ⊆ P 0 := subset_of_le_nested h_nested (Nat.zero_le n)
-      exact h_sub hn_z.1
-    · -- z ∉ P N
-      intro h_in_N
-      have h_sub : P N ⊆ P (n + 1) := subset_of_le_nested h_nested hn_lt
-      apply hn_z.2
-      apply h_sub h_in_N
-
-  -- Monotonicity lemma
-  have modulus_mono : ∀ {U V : Set ℂ}, U ⊆ V → modulus U ≤ modulus V := by
-    intro U V h_sub
-    have h_union : U ∪ ∅ ⊆ V := by simp [h_sub]
-    have h_disj_empty : Disjoint U ∅ := disjoint_empty U
-    have h_ineq := groetzsch_inequality h_disj_empty h_union
-    rw [modulus_empty, add_zero] at h_ineq
-    exact h_ineq
-
-  -- Bounded partial sums
-  have h_bounded : ∀ N, Finset.sum (Finset.range N) (fun n => modulus (A n)) ≤ modulus (P 0 \ (⋂ n, P n)) := by
-    intro N
-    -- First show sum ≤ modulus (P 0 \ P N)
-    have h_sum_le : Finset.sum (Finset.range N) (fun n => modulus (A n)) ≤ modulus (P 0 \ P N) := by
-      induction N with
-      | zero =>
-        simp
-        rw [modulus_empty]
-      | succ k ih =>
-        rw [Finset.sum_range_succ]
-        have h_split : P 0 \ P (k + 1) = (P 0 \ P k) ∪ (P k \ P (k + 1)) := by
-          ext z
-          simp
-          constructor
-          · intro h
-            by_cases hk : z ∈ P k
-            · right; exact ⟨hk, h.2⟩
-            · left; exact ⟨h.1, hk⟩
-          · intro h
-            cases h with
-            | inl h => exact ⟨h.1, fun h_in => h.2 (h_nested k h_in)⟩
-            | inr h =>
-                have h_sub : P k ⊆ P 0 := subset_of_le_nested h_nested (Nat.zero_le k)
-                exact ⟨h_sub h.1, h.2⟩
-
-        have h_disj_split : Disjoint (P 0 \ P k) (P k \ P (k + 1)) := by
-          rw [Set.disjoint_left]
-          intro z h1 h2
-          have h_in_Pk := h2.1
-          have h_not_in_Pk := h1.2
-          contradiction
-
-        have h_ineq := groetzsch_inequality h_disj_split (subset_of_eq h_split.symm)
-        apply le_trans (add_le_add ih (le_refl (modulus (A k))))
-        exact h_ineq
-
-    apply le_trans h_sum_le
-    apply modulus_mono
-    apply diff_subset_diff_right
-    apply sInter_subset_of_mem
-    simp
-
-  apply summable_of_sum_range_le (fun n => modulus_nonneg _) h_bounded
-\end{lstlisting}
-
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item \textbf{Goal}: Prove that $\sum \text{mod}(P_n \setminus P_{n+1})$ converges.
-    \item \texttt{A := fun n => P n \textbackslash P (n + 1)}: Defines the sequence of annuli $A_n$.
-    \item \texttt{h\_disj}: Proves that $A_i$ and $A_j$ are disjoint for $i < j$. This relies on the nested property: $A_j \subseteq P_j \subseteq P_{i+1}$, while $A_i$ is disjoint from $P_{i+1}$.
-    \item \texttt{h\_union\_sub}: Shows that the union of the first $N$ annuli is contained in $P_0 \setminus P_N$.
-    \item \texttt{modulus\_mono}: Proves monotonicity of modulus ($U \subseteq V \implies \text{mod}(U) \le \text{mod}(V)$). This is derived from Grötzsch's inequality by taking the second set to be empty.
-    \item \texttt{h\_bounded}: Proves the partial sums are bounded.
-        \begin{itemize}
-            \item \texttt{h\_sum\_le}: Shows $\sum_{n=0}^{N-1} \text{mod}(A_n) \le \text{mod}(P_0 \setminus P_N)$ by induction.
-            \item The inductive step uses \texttt{h\_split} to decompose $P_0 \setminus P_{k+1}$ into $(P_0 \setminus P_k) \cup (P_k \setminus P_{k+1})$.
-            \item Grötzsch's inequality is then applied to this disjoint union.
-            \item Finally, we bound $\text{mod}(P_0 \setminus P_N)$ by $\text{mod}(P_0 \setminus \bigcap P_n)$ using monotonicity, noting that $P_N \supseteq \bigcap P_n$ implies $P_0 \setminus P_N \subseteq P_0 \setminus \bigcap P_n$.
-        \end{itemize}
-    \item \texttt{summable\_of\_sum\_range\_le}: Concludes convergence since the partial sums are bounded and terms are non-negative.
-\end{itemize}
-
-\begin{proof}
-The central step is the induction which shows for every N:
-\[
-\sum_{n=0}^{N-1}\mathrm{mod}(A_n)\le\mathrm{mod}(P_0\setminus P_N).
-\]
-For $N=0$ the claim is trivial. For the inductive step decompose
-\[
-P_0\setminus P_{k+1}=(P_0\setminus P_k)\cup(P_k\setminus P_{k+1}),
-\]
-and note the union is disjoint. Applying Grötzsch's inequality to this decomposition yields
-\[
-\mathrm{mod}(P_0\setminus P_k)+\mathrm{mod}(P_k\setminus P_{k+1})\le\mathrm{mod}(P_0\setminus P_{k+1}).
-\]
-By the inductive hypothesis the left-hand side bounds the partial sum up to index $k$, hence the partial sum up to $k+1$ is bounded by the modulus of the outer difference. Iterating and passing to the intersection gives a uniform bound for all partial sums, and since the terms are non-negative the series is summable.
-\end{proof}
-
-\subsection{Grötzsch's Criterion}
-
-Finally, we prove the main criterion: if the sum of moduli diverges, the intersection must be a single point (assuming it contains 0).
-
-\begin{lstlisting}[language=Lean]
-theorem groetzsch_criterion {P : ℕ → Set ℂ}
-    (h_nested : ∀ n, P (n + 1) ⊆ P n)
-    (h_zero : ∀ n, 0 ∈ P n)
-    (h_conn : ∀ n, IsConnected (P n))
-    (h_div : ¬ Summable (fun n => modulus (P n \ P (n + 1)))) :
-    (⋂ n, P n) = {0} := by
-  by_contra h_neq
-  have h_nontriv : Set.Nontrivial (⋂ n, P n) := by
-    have h_0 : 0 ∈ ⋂ n, P n := Set.mem_iInter.mpr h_zero
-    rw [Set.nontrivial_iff_exists_ne h_0]
-    by_contra h_all_eq
-    apply h_neq
-    ext z
-    constructor
-    · intro hz
-      by_cases h_z_eq : z = 0
-      · rw [h_z_eq]; exact Set.mem_singleton 0
-      · push_neg at h_all_eq
-        specialize h_all_eq z hz
-        contradiction
-    · intro hz
-      rw [Set.mem_singleton_iff] at hz
-      rw [hz]
-      exact h_0
-  have h_sum := modulus_summable_of_nontrivial_intersection h_nested h_conn h_nontriv
-  contradiction
-\end{lstlisting}
-
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item \textbf{Hypotheses}:
-        \begin{itemize}
-            \item \texttt{h\_nested}: Sets are nested.
-            \item \texttt{h\_zero}: All sets contain 0.
-            \item \texttt{h\_div}: The sum of moduli diverges.
-        \end{itemize}
-    \item \textbf{Proof Strategy}: Proof by contradiction (\texttt{by\_contra}).
-    \item \texttt{h\_neq}: Assume the intersection is not equal to $\{0\}$.
-    \item \texttt{h\_nontriv}: We deduce that the intersection is "non-trivial" (contains at least two points). Since we know $0$ is in the intersection, and the intersection is not just $\{0\}$, there must be some $z \ne 0$.
-    \item \texttt{h\_sum}: We apply \texttt{modulus\_summable\_of\_nontrivial\_intersection}. This theorem tells us that if the intersection is non-trivial, the sum of moduli \emph{must} converge.
-    \item \textbf{Contradiction}: We have derived that the sum is summable (\texttt{h\_sum}), which contradicts the hypothesis \texttt{h\_div} (that the sum is not summable).
-    \item Therefore, the assumption \texttt{h\_neq} must be false, and the intersection is indeed exactly $\{0\}$.
-\end{itemize}
-
-\begin{proof}
-Assume the intersection contains a point $z\neq0$; then it is nontrivial and by the previous theorem the series of moduli is summable. This contradicts the hypothesis that the series diverges, so the intersection must equal $\{0\}$.
-\end{proof}

@@ -1,312 +1,43 @@
-\section{Escape Lemma for the Quadratic Family}
-\label{sec:Escape}
+\section{Escape}
+\textit{Source: \texttt{Quadratic/Complex/Escape.lean}}
 
-This section describes the verification of the file \texttt{Mlc/Quadratic/Complex/Escape.lean}. This file proves the escape lemma: if the orbit of a point ever leaves the disk of radius $R(c)$, then it escapes to infinity.
+\begin{quotation}
+\textbf{Escape Lemma for the Quadratic Family}
 
-Reference: "Conformal Geometry and Dynamics of Quadratic Polynomials", Section 21.2, p. 125.
+This file proves the escape lemma: if the orbit of a point ever leaves the disk of
+radius \texttt{R(c)}, then it escapes to infinity.
 
-\subsection{Connection to MLC}
+Reference: "Conformal Geometry and Dynamics of Quadratic Polynomials",
+https://indico.ictp.it/event/a12182/session/2/contribution/1/material/0/0.pdf
+(See Section 21.2, p. 125 for the escape lemma)
 
-The escape lemma is the foundational result for the construction of Yoccoz puzzles, which are central to the proof of the Mandelbrot Local Connectivity (MLC) conjecture.
-\begin{enumerate}
-    \item \textbf{Basin of Infinity}: It establishes that the basin of attraction of infinity contains the complement of the disk $D(0, R(c))$.
-    \item \textbf{Green's Function}: This allows defining the Green's function $G(z) = \lim \frac{1}{2^n} \log|f_c^n(z)|$.
-    \item \textbf{Böttcher Coordinates}: Used to construct coordinates near infinity.
-    \item \textbf{Rays and Equipotentials}: Form the grid for the Yoccoz puzzle partition.
-\end{enumerate}
+\textbf{Connection to MLC}
 
-\subsection{Formalization}
+The escape lemma is the foundational result for the construction of Yoccoz puzzles,
+which are central to the proof of the Mandelbrot Local Connectivity (MLC) conjecture.
 
-We assume the standard imports and open the necessary namespaces.
+1.  **Basin of Infinity**: It establishes that the basin of attraction of infinity,
+    \$A(\textbackslash{}infty) = \textbackslash{}\{z \textbackslash{}mid f\_c\textasciicircum{}n(z) \textbackslash{}to \textbackslash{}infty\textbackslash{}\}\$, contains the complement of the disk \$D(0, R(c))\$.
+2.  **Green's Function**: This allows defining the Green's function \$G(z) = \textbackslash{}lim \textbackslash{}frac\{1\}\{2\textasciicircum{}n\} \textbackslash{}log|f\_c\textasciicircum{}n(z)|\$
+    for \$z \textbackslash{}in A(\textbackslash{}infty)\$.
+3.  **Böttcher Coordinates**: The Green's function is used to construct the Böttcher coordinate
+    \$\textbackslash{}phi\_c(z)\$ near infinity, which conjugates \$f\_c\$ to \$z \textbackslash{}mapsto z\textasciicircum{}2\$.
+4.  **Rays and Equipotentials**: The level sets of \$G(z)\$ (equipotentials) and the gradient lines
+    of \$G(z)\$ (external rays) form the grid for the Yoccoz puzzle partition.
 
-\begin{lstlisting}[language=Lean]
-namespace MLC.Quadratic
-open scoped Complex
-open Complex Topology Filter Real
-noncomputable section
-variable {c z : $\mathbb{C}$}
-\end{lstlisting}
+Thus, this lemma justifies the existence of the dynamical plane structures required for the
+combinatorial analysis in the MLC proof.
+\end{quotation}
 
-\subsubsection{Basic Inequality}
+\subsection*{escape\_lemma}\label{escape_lemma}
+Escape lemma: if the orbit of z ever leaves the disk of radius R(c), then it
+escapes to infinity.
 
-\begin{lstlisting}[language=Lean]
-lemma norm_sq_sub_norm_c_ge (c z : $\mathbb{C}$) : $\|$z^2$\|$ - $\|$c$\|$ $\ge$ $\|$z$\|$^2 - (R c - 1) := by
-  simp only [norm_sq]
-  linarith [R_ge_one_plus_c c]
-\end{lstlisting}
+Proof idea:
+We define a 'growth factor' \texttt{$\lambda$(w) = |w| - |c|/|w|}.
+We show that if \texttt{|w| > R(c)}, then \texttt{$\lambda$(w) > 1}.
+We then prove by induction that \texttt{|f\_c\textasciicircum{}k(w)| $\ge$ |w| * $\lambda$(w)\textasciicircum{}k}.
+Since \texttt{$\lambda$(w) > 1}, the term \texttt{$\lambda$(w)\textasciicircum{}k} grows to infinity, so the orbit norm grows unbounded.
 
-\textbf{Explanation of \texttt{norm\_sq\_sub\_norm\_c\_ge}:}
-\begin{itemize}
-    \item \texttt{simp only [norm\_sq]}: We simplify $|z^2|$ to $|z|^2$ using the property $|z^2| = |z|^2$.
-    \item \texttt{linarith [R\_ge\_one\_plus\_c c]}: We use linear arithmetic with the hypothesis $R(c) \ge 1 + |c|$.
-    \begin{itemize}
-        \item From $R(c) \ge 1 + |c|$, we get $|c| \le R(c) - 1$.
-        \item Therefore, $-|c| \ge -(R(c) - 1)$.
-        \item Adding $|z|^2$ to both sides yields $|z|^2 - |c| \ge |z|^2 - (R(c) - 1)$.
-    \end{itemize}
-\end{itemize}
+\textit{(See code: escape\_lemma)}
 
-\begin{proof}
-Since $|z^2|=|z|^2$ we have $|z^2|-|c|=|z|^2-|c|$. From $R(c)\ge 1+|c|$ we get $|c|\le R(c)-1$, hence
-$|z|^2-|c|\ge |z|^2-(R(c)-1)$, which is exactly the asserted inequality.
-\end{proof}
-
-\subsubsection{Norm Growth Estimate}
-
-\begin{lstlisting}[language=Lean]
-lemma norm_growth (c z : $\mathbb{C}$) : $\|$fc c z$\|$ $\ge$ $\|$z$\|$^2 - (R c - 1) := by
-  rw [fc]
-  have h_tri : $\|$z^2 + c$\|$ $\ge$ $\|$z^2$\|$ - $\|$c$\|$ := by
-    have := norm_add_le (z^2 + c) (-c)
-    simp only [add_neg_cancel_right, norm_neg] at this
-    linarith
-  rw [norm_sq] at h_tri
-  linarith [R_ge_one_plus_c c]
-\end{lstlisting}
-
-\textbf{Explanation of \texttt{norm\_growth}:}
-\begin{itemize}
-    \item \texttt{rw [fc]}: Expand the definition $f_c(z) = z^2 + c$.
-    \item \texttt{have h\_tri}: We prove the reverse triangle inequality $|z^2+c| \ge |z^2| - |c|$.
-        \begin{itemize}
-            \item \texttt{norm\_add\_le}: Standard triangle inequality $|(z^2+c) + (-c)| \le |z^2+c| + |-c|$.
-            \item \texttt{simp}: Simplifies to $|z^2| \le |z^2+c| + |c|$.
-            \item \texttt{linarith}: Rearranges to $|z^2+c| \ge |z^2| - |c|$.
-        \end{itemize}
-    \item \texttt{rw [norm\_sq]}: Replace $|z^2|$ with $|z|^2$.
-    \item \texttt{linarith}: Combine $|z^2+c| \ge |z|^2 - |c|$ with the fact $|c| \le R(c) - 1$ to get $|z^2+c| \ge |z|^2 - (R(c)-1)$.
-\end{itemize}
-
-\begin{proof}
-Writing $f_c(z)=z^2+c$ and applying the triangle inequality gives $|z^2+c|\ge|z^2|-|c|=|z|^2-|c|$. Using $|c|\le R(c)-1$ (from $R(c)\ge1+|c|$) yields
-$|f_c(z)|\ge|z|^2-(R(c)-1)$, as required.
-\end{proof}
-
-\subsubsection{Refined Lower Bound}
-
-\begin{lstlisting}[language=Lean]
-lemma norm_fc_ge_norm_sq_sub_norm_c (c z : $\mathbb{C}$) : $\|$fc c z$\|$ $\ge$ $\|$z$\|$^2 - $\|$c$\|$ := by
-  rw [fc]
-  have := norm_add_le (z^2 + c) (-c)
-  simp only [add_neg_cancel_right, norm_neg] at this
-  rw [norm_sq] at this
-  linarith
-\end{lstlisting}
-
-\textbf{Explanation of \texttt{norm\_fc\_ge\_norm\_sq\_sub\_norm\_c}:}
-This is a more direct application of the reverse triangle inequality without substituting $R(c)$.
-\begin{itemize}
-    \item It establishes $|f_c(z)| \ge |z|^2 - |c|$.
-    \item This form is crucial for factoring out $|z|$ later: $|z|^2 - |c| = |z|(|z| - |c|/|z|)$.
-\end{itemize}
-
-\begin{proof}
-Apply the triangle inequality in reverse: $|z^2+c|\ge|z^2|-|c|$. Since $|z^2|=|z|^2$ the inequality becomes $|f_c(z)|\ge|z|^2-|c|$, which is the claimed bound.
-\end{proof}
-
-\subsubsection{Monotonicity of Growth Factor}
-
-\begin{lstlisting}[language=Lean]
-lemma sub_div_mono (c : $\mathbb{C}$) : StrictMonoOn (fun x : $\mathbb{R}$ => x - $\|$c$\|$ / x) (Set.Ioi 0) := by
-  intro x hx y _ hxy
-  dsimp
-  apply add_lt_add_of_lt_of_le hxy
-  rw [neg_le_neg_iff]
-  apply div_le_div_of_nonneg_left (norm_nonneg c) hx (le_of_lt hxy)
-\end{lstlisting}
-
-\textbf{Explanation of \texttt{sub\_div\_mono}:}
-We prove that $g(x) = x - |c|/x$ is strictly increasing for $x > 0$.
-\begin{itemize}
-    \item \texttt{intro x hx y \_ hxy}: Let $0 < x < y$.
-    \item \texttt{add\_lt\_add...}: We split the inequality into proving $x < y$ (which is true by assumption) and $-|c|/x \le -|c|/y$.
-    \item \texttt{neg\_le\_neg\_iff}: Proving $-|c|/x \le -|c|/y$ is equivalent to $|c|/x \ge |c|/y$.
-    \item \texttt{div\_le\_div...}: Since $x < y$, $1/x > 1/y$. With $|c| \ge 0$, multiplying preserves the order (or equality if $c=0$), so $|c|/x \ge |c|/y$.
-\end{itemize}
-
-\begin{proof}
-For $0<x<y$ we have $|c|/x\ge|c|/y$ because $1/x>1/y$ and $|c|\ge0$. Hence
-$(x-|c|/x)<(y-|c|/y)$, so $g(x)<g(y)$, showing $g$ is strictly increasing on $(0,\infty)$.
-\end{proof}
-
-
-\subsubsection{Factor Greater Than One}
-
-\begin{lstlisting}[language=Lean]
-lemma factor_gt_one (c z : $\mathbb{C}$) (h : $\|$z$\|$ > R c) : $\|$z$\|$ - $\|$c$\|$ / $\|$z$\|$ > 1 := by
-  have R_pos : R c > 0 := by linarith [R_ge_two c]
-  have z_pos : $\|$z$\|$ > 0 := by linarith
-  have key : $\|$z$\|$ - $\|$c$\|$ / $\|$z$\|$ > R c - $\|$c$\|$ / R c := sub_div_mono c R_pos z_pos h
-  have R_ge : R c - $\|$c$\|$ / R c $\ge$ 1 := by
-    have hR2 : R c $\ge$ 2 := R_ge_two c
-    have hRc : R c $\ge$ 1 + $\|$c$\|$ := R_ge_one_plus_c c
-    rw [ge_iff_le, le_sub_iff_add_le, add_comm 1, $\leftarrow$ le_sub_iff_add_le]
-    rw [div_le_iff₀ R_pos]
-    have h_calc := calc
-      $\|$c$\|$ = 1 * $\|$c$\|$ := by simp
-      _ $\le$ (R c - 1) * (R c - 1) := by
-        nlinarith
-      _ $\le$ (R c - 1) * R c := by
-        apply mul_le_mul_of_nonneg_left
-        · linarith
-        · linarith
-      _ = R c * R c - R c := by ring
-    linarith
-  linarith
-\end{lstlisting}
-
-\textbf{Explanation of \texttt{factor\_gt\_one}:}
-We show that if $|z| > R(c)$, then $|z| - |c|/|z| > 1$.
-\begin{itemize}
-    \item \texttt{sub\_div\_mono}: Since $|z| > R(c) > 0$ and the function $x - |c|/x$ is monotonic, we have $|z| - |c|/|z| > R(c) - |c|/R(c)$.
-    \item \textbf{The Lower Bound}: We need to prove $R(c) - |c|/R(c) \ge 1$.
-        \item Rearranging, this is equivalent to $R(c) - 1 \ge |c|/R(c)$, or $R(c)(R(c)-1) \ge |c|$.
-        \item Since $R(c) \ge 1+|c|$, we have $R(c)-1 \ge |c|$.
-        \item So the product $R(c)(R(c)-1) \ge R(c)|c| \ge 2|c| \ge |c|$. (The formalized proof uses a slightly different calc block essentially establishing the same inequality $R(c)^2 - R(c) \ge |c|$).
-\end{itemize}
-
-\begin{proof}
-By monotonicity we have $|z|-|c|/|z|>R(c)-|c|/R(c)$. It therefore suffices to check
-$R(c)-|c|/R(c)\ge1$, equivalently $R(c)(R(c)-1)\ge|c|$. Since $R(c)\ge1+|c|$ we get $R(c)-1\ge|c|$, and multiplying by $R(c)\ge1$ yields
-$R(c)(R(c)-1)\ge R(c)|c|\ge|c|$, proving the claim.
-\end{proof}
-
-\subsubsection{Escape Lemma}
-
-\begin{lstlisting}[language=Lean]
-lemma escape_lemma (n : $\mathbb{N}$) (h : $\|$orbit c z n$\|$ > R c) :
-    $\forall$ M : $\mathbb{R}$, $\exists$ N : $\mathbb{N}$, $\forall$ m $\ge$ N, $\|$orbit c z m$\|$ > M := by
-  let w := orbit c z n
-  let lam := $\|$w$\|$ - $\|$c$\|$ / $\|$w$\|$
-  have hlam : lam > 1 := factor_gt_one c w h
-  have hw_pos : $\|$w$\|$ > 0 := lt_trans (R_pos c) h
-
-  have growth : $\forall$ k, $\|$orbit c w k$\|$ $\ge$ $\|$w$\|$ * lam ^ k := by
-    intro k
-    induction k with
-    | zero => simp
-    | succ k ih =>
-      let z_k := orbit c w k
-      have h_zk_ge : $\|$z_k$\|$ $\ge$ $\|$w$\|$ := by
-        calc $\|$z_k$\|$ $\ge$ $\|$w$\|$ * lam ^ k := ih
-          _ $\ge$ $\|$w$\|$ * 1 := by
-            gcongr
-            exact one_le_pow₀ (le_of_lt hlam)
-          _ = $\|$w$\|$ := by simp
-
-      have h_zk_pos : $\|$z_k$\|$ > 0 := lt_of_lt_of_le hw_pos h_zk_ge
-
-      calc $\|$orbit c w (k + 1)$\|$
-        _ = $\|$fc c z_k$\|$ := by rw [orbit_succ]
-        _ $\ge$ $\|$z_k$\|^2$ - $\|$c$\|$ := norm_fc_ge_norm_sq_sub_norm_c c z_k
-        _ = $\|$z_k$\|$ * ($\|$z_k$\|$ - $\|$c$\|$ / $\|$z_k$\|$) := by field_simp [h_zk_pos.ne']
-        _ $\ge$ $\|$z_k$\|$ * lam := by
-          gcongr
-          apply (sub_div_mono c).monotoneOn
-          · exact hw_pos
-          · exact h_zk_pos
-          · exact h_zk_ge
-        _ $\ge$ ($\|$w$\|$ * lam ^ k) * lam := by
-          apply mul_le_mul_of_nonneg_right ih
-          exact le_of_lt (lt_trans zero_lt_one hlam)
-        _ = $\|$w$\|$ * lam ^ (k + 1) := by
-          rw [pow_succ]
-          ring
-
-  intro M
-  have h_tendsto : Tendsto (fun k => $\|$w$\|$ * lam ^ k) atTop atTop := by
-    apply Filter.Tendsto.const_mul_atTop hw_pos
-    apply tendsto_pow_atTop_atTop_of_one_lt hlam
-
-  rcases (Filter.tendsto_atTop_atTop.mp h_tendsto) (M + 1) with $\langle$N0, hN0$\rangle$
-  use n + N0
-  intro m hm
-  let k := m - n
-  have hnm : n $\le$ m := le_trans (Nat.le_add_right n N0) hm
-  have hk : m = n + k := (Nat.add_sub_of_le hnm).symm
-  rw [hk, add_comm]
-  dsimp [orbit]
-  rw [Function.iterate_add_apply]
-  have hm' : N0 + n $\le$ m := by rwa [add_comm]
-  specialize hN0 k (Nat.le_sub_of_add_le hm')
-  calc $\|$orbit c w k$\|$ $\ge$ $\|$w$\|$ * lam ^ k := growth k
-    _ $\ge$ M + 1 := hN0
-    _ > M := lt_add_one M
-\end{lstlisting}
-
-\textbf{Explanation of \texttt{escape\_lemma}:}
-\begin{itemize}
-    \item \texttt{lam}: We define $\lambda = |w| - |c|/|w|$.
-    \item \texttt{hlam}: We proved $\lambda > 1$ in \texttt{factor\_gt\_one}.
-    \item \texttt{growth}: By induction, we show $|f^k(w)| \ge |w| \cdot \lambda^k$.
-        \begin{itemize}
-            \item \textbf{Base case}: For $k=0$, $|w| \ge |w| \cdot 1$.
-            \item \textbf{Step}:
-                \item $|f(z_k)| \ge |z_k|^2 - |c| = |z_k|(|z_k| - |c|/|z_k|)$.
-                \item Since $|z_k| \ge |w|$, by monotonicity \texttt{sub\_div\_mono}, $(|z_k| - |c|/|z_k|) \ge (|w| - |c|/|w|) = \lambda$.
-                \item So $|f(z_k)| \ge |z_k| \cdot \lambda$.
-                \item Using IH $|z_k| \ge |w|\lambda^k$, we get $|f(z_k)| \ge |w|\lambda^k \cdot \lambda = |w|\lambda^{k+1}$.
-        \end{itemize}
-    \item \texttt{h\_tendsto}: Since $\lambda > 1$, the sequence $|w|\lambda^k$ tends to infinity.
-    \item \textbf{Conclusion}: For any $M$, there is a time when the orbit exceeds $M$ and stays there.
-\end{itemize}
-
-\begin{proof}
-Let $w=f^n(z)$ and $\lambda=|w|-|c|/|w|>1$. By induction one shows $|f^k(w)|\ge|w|\lambda^k$ for all $k$: the base case is trivial, and if $|f^k(w)|\ge|w|\lambda^k$ then
-$|f^{k+1}(w)|\ge|f^k(w)|^2-|c|=|f^k(w)|(|f^k(w)|-|c|/|f^k(w)|)\ge|f^k(w)|\lambda\ge|w|\lambda^{k+1}$. Since $\lambda>1$ the right-hand side tends to infinity, so for any $M$ there exists $K$ with $|w|\lambda^K>M$, and hence for all $m\ge n+K$ we have $|f^{m}(z)|=|f^{m-n}(w)|\ge|w|\lambda^{m-n}>M$, proving escape to infinity.
-\end{proof}
-
-\subsubsection{Norm Non-Decreasing}
-
-\begin{lstlisting}[language=Lean]
-lemma norm_orbit_ge_of_norm_ge_R (c z : $\mathbb{C}$) (n : $\mathbb{N}$) (h : $\|$z$\|$ > R c) :
-    $\|$orbit c z n$\|$ $\ge$ $\|$z$\|$ := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    have h_n : $\|$orbit c z n$\|$ $\ge$ $\|$z$\|$ := ih
-    have h_n_R : $\|$orbit c z n$\|$ > R c := lt_of_lt_of_le h h_n
-    rw [orbit_succ]
-    have : $\|$fc c (orbit c z n)$\|$ $\ge$ $\|$orbit c z n$\|^2$ - $\|$c$\|$ := norm_fc_ge_norm_sq_sub_norm_c c _
-    apply le_trans h_n
-    apply le_trans _ this
-    have h_zn : $\|$orbit c z n$\|$ > R c := h_n_R
-    have h_R : R c $\ge$ 1 + $\|$c$\|$ := R_ge_one_plus_c c
-    have h_R2 : R c $\ge$ 2 := R_ge_two c
-    have h_zn_gt_1 : $\|$orbit c z n$\|$ > 1 := lt_of_le_of_lt (by linarith) h_zn
-    have h_zn_sub_1 : $\|$orbit c z n$\|$ - 1 > $\|$c$\|$ := by linarith
-    have : $\|$orbit c z n$\|$ * ($\|$orbit c z n$\|$ - 1) > 1 * $\|$c$\|$ := by
-      by_cases hc : $\|$c$\|$ = 0
-      · rw [hc, mul_zero]
-        apply mul_pos
-        · linarith
-        · linarith
-      · have h_calc : 1 * $\|$c$\|$ < $\|$orbit c z n$\|$ * ($\|$orbit c z n$\|$ - 1) := calc
-          1 * $\|$c$\|$ < 1 * ($\|$orbit c z n$\|$ - 1) := by
-            gcongr
-          _ < $\|$orbit c z n$\|$ * ($\|$orbit c z n$\|$ - 1) := by
-            apply mul_lt_mul_of_pos_right
-            · exact h_zn_gt_1
-            · linarith
-        exact h_calc
-    rw [one_mul] at this
-    rw [mul_sub, mul_one] at this
-    linarith
-\end{lstlisting}
-
-\textbf{Explanation of \texttt{norm\_orbit\_ge\_of\_norm\_ge\_R}:}
-We prove by induction that if $|z| > R(c)$, then $|f^n(z)| \ge |z|$.
-\begin{itemize}
-    \item \textbf{Step}: Assuming $|z_n| \ge |z|$, we need $|z_{n+1}| \ge |z_n|$ to prove monotonicity (and hence $|z_{n+1}| \ge |z|$).
-    \item We know $|z_{n+1}| \ge |z_n|^2 - |c|$.
-    \item We want $|z_n|^2 - |c| \ge |z_n|$, or $|z_n|^2 - |z_n| \ge |c|$, or $|z_n|(|z_n|-1) \ge |c|$.
-    \item Since $|z_n| > R(c) \ge 1+|c|$, we have $|z_n|-1 > |c|$.
-    \item Also $|z_n| > 2 \ge 1$.
-    \item So $|z_n|(|z_n|-1) > 1 \cdot |c| = |c|$.
-    \item Therefore $|z_{n+1}| > |z_n|$.
-\end{itemize}
-
-\begin{proof}
-Assume $|z|>R(c)$. By induction suppose $|f^n(z)|\ge|z|$; write $z_n=f^n(z)$. Then
-$|f(z_n)|\ge|z_n|^2-|c|=|z_n|(|z_n|-1)$. Since $|z_n|>R(c)\ge1+|c|$ we have $|z_n|-1>|c|$ and $|z_n|>1$, so $|z_n|(|z_n|-1)>|c|$. Hence $|f(z_n)|>|z_n|$, completing the induction and proving the sequence is non-decreasing (in fact strictly increasing).
-\end{proof}

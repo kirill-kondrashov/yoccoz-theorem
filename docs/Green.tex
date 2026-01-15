@@ -1,262 +1,62 @@
-\section{Green's Function}
-\label{sec:Green}
+\section{Green}
+\textit{Source: \texttt{Quadratic/Complex/Green.lean}}
 
-This section describes the verification of the file \texttt{Mlc/Quadratic/Complex/Green.lean}. It defines the Green's function $G_c(z)$ for the filled Julia set $K(c)$, which measures the rate of escape to infinity and acts as a potential for the electrostatic field defined by $K(c)$.
+\begin{quotation}
+\textbf{Green's Function for the Quadratic Family}
 
-\subsection{Functional Equation}
+This file defines the Green's function \texttt{G\_c(z)} for the filled Julia set \texttt{K(c)}.
+The Green's function measures the rate of escape to infinity.
 
-One of the most important properties of the Green's function is the functional equation $G_c(f_c(z)) = 2 G_c(z)$. This reflects the fact that $f_c$ behaves like $z^2$ near infinity, doubling the potential.
+\textbf{Connection to MLC}
 
-\begin{lstlisting}[language=Lean]
-/-- The Green's function satisfies the functional equation `G(f(z)) = 2 * G(z)`. -/
-lemma green_function_functional_eq (c z : $\mathbb{C}$) :
-    green_function c (fc c z) = 2 * green_function c z := by
-  have h_lim : Tendsto (fun n => potential_seq c (fc c z) n) atTop ($\mathcal{N}$ (2 * green_function c z)) := by
-    have h_shift : $\forall$ n, potential_seq c (fc c z) n = 2 * potential_seq c z (n + 1) := by
-      intro n
-      dsimp [potential_seq]
-      have h_orb : orbit c (fc c z) n = orbit c z (n + 1) := by
-        induction n with
-        | zero => simp
-        | succ n ih => simp [orbit_succ, ih]
-      rw [h_orb]
-      rw [pow_succ' 2 n]
-      field_simp
-    simp_rw [h_shift]
-    apply Tendsto.const_mul
-    have h_tendsto := green_function_eq_lim c z
-    exact h_tendsto.comp (tendsto_add_atTop_nat 1)
-  
-  have h_eq : green_function c (fc c z) = 2 * green_function c z := by
-    rw [green_function, limUnder, lim]
-    have h_ex : $\exists$ x, map (potential_seq c (fc c z)) atTop $\le$ $\mathcal{N}$ x := $\langle$2 * green_function c z, h_lim$\rangle$
-    have h_spec := Classical.epsilon_spec h_ex
-    exact (tendsto_nhds_unique h_lim h_spec).symm
-  exact h_eq
-\end{lstlisting}
+The Green's function is used to construct Yoccoz puzzles, which are central to the proof of the
+Mandelbrot Local Connectivity (MLC) conjecture.
 
-\textbf{Explanation:}
-\begin{itemize}
-    \item \texttt{h\_lim}: We construct a proof that the potential sequence for $f_c(z)$ converges to $2 G_c(z)$.
-    \item \texttt{h\_shift}: We prove the key algebraic relation: $a_n(f_c(z)) = 2 a_{n+1}(z)$.
-        \begin{itemize}
-            \item \texttt{intro n}: Let $n$ be an arbitrary index.
-            \item \texttt{dsimp}: Unfold the definition of \texttt{potential\_seq}: $\frac{1}{2^n} \log |f^n(f(z))|$.
-            \item \texttt{h\_orb}: We show orbit correspondence: $f^n(f(z)) = f^{n+1}(z)$.
-            \item \texttt{rw [h\_orb]}: Substitute into the sequence definition.
-            \item \texttt{field\_simp}: Simplify to see that $\frac{1}{2^n} \log |f^{n+1}(z)| = 2 \cdot \frac{1}{2^{n+1}} \log |f^{n+1}(z)|$.
-        \end{itemize}
-    \item \texttt{simp\_rw [h\_shift]}: Replace the sequence for $f_c(z)$ with the shifted, doubled sequence for $z$ inside the limit goal.
-    \item \texttt{apply Tendsto.const\_mul}: Use the limit law: $\lim (2 \cdot x_n) = 2 \cdot \lim x_n$.
-    \item \texttt{exact ... comp ...}: Use that shifting a sequence by 1 ($\lim a_{n+1}$) does not change its limit.
-    \item \texttt{h\_eq}: We conclude that the value of the function matches the limit we found.
-        \begin{itemize}
-            \item \texttt{rw [green\_function, limUnder, lim]}: Unfold definitions to expose the \texttt{lim} operator.
-            \item \texttt{tendsto\_nhds\_unique}: Since the limit exists and is unique in $\mathbb{R}$, the value returned by \texttt{lim} must equal our calculated limit $2 G_c(z)$.
-        \end{itemize}
-\end{itemize}
+*   **Equipotentials and Rays**: Level sets of \texttt{G\_c} (equipotentials) and their orthogonal trajectories
+    (external rays) form a grid on \texttt{$\mathbb{C}$ \textbackslash{} K(c)}.
+*   **Yoccoz Puzzles**: Intersections of these curves define puzzle pieces used to analyze the combinatorics
+    of orbits.
+*   **Böttcher Coordinates**: \texttt{G\_c} is the real part of the Böttcher coordinate, conjugating \texttt{f\_c} to \texttt{z $\mapsto$ z\textasciicircum{}2}
+    near infinity.
 
-\begin{proof}
-From the relation $a_n(f(z))=2a_{n+1}(z)$ one gets $a_n(f(z))\to2G(z)$ as $n\to\infty$. By definition $G(f(z))$ is the limit of $a_n(f(z))$, hence $G(f(z))=2G(z)$ by uniqueness of limits.
-\end{proof}
+\textbf{Main Definitions}
 
-\subsection{Basic Properties}
+* \texttt{potential\_seq c z n}: The sequence \texttt{1/2\textasciicircum{}n * log ‖f\_c\textasciicircum{}n(z)‖}.
+* \texttt{green\_function c z}: The limit of \texttt{potential\_seq} as \texttt{n $\to$ ∞}.
 
-\subsubsection{Non-Negativity}
+\textbf{Main Results (Sketched)}
 
-\begin{lstlisting}[language=Lean]
-/-- The Green's function is non-negative. -/
-lemma green_function_nonneg (c z : $\mathbb{C}$) : 0 $\le$ green_function c z := by
-  have h_lim : Tendsto (fun n => - potential_seq c z n) atTop ($\mathcal{N}$ (- green_function c z)) :=
-    (green_function_eq_lim c z).neg
-  have h_le : - green_function c z $\le$ 0 := by
-    apply le_of_tendsto' h_lim
-    intro n
-    simp only [neg_nonpos]
-    rw [potential_seq]
-    apply mul_nonneg
-    · positivity
-    · apply Real.log_nonneg
-      apply le_max_left
-  linarith
-\end{lstlisting}
+* \texttt{green\_function\_eq\_zero\_iff\_mem\_K}: \texttt{G\_c(z) = 0 $\leftrightarrow$ z $\in$ K(c)}.
+* \texttt{green\_function\_functional\_eq}: \texttt{G\_c(f\_c(z)) = 2 * G\_c(z)}.
+* \texttt{green\_function\_harmonic}: \texttt{G\_c} is harmonic on \texttt{$\mathbb{C}$ \textbackslash{} K(c)}.
+\end{quotation}
 
-\textbf{Explanation:}
-\begin{itemize}
-    \item \texttt{h\_lim}: We look at the limit of the negative sequence $-a_n$. Since $a_n \to G$, $-a_n \to -G$.
-    \item \texttt{h\_le}: We show the limit $-G$ is $\le 0$ (equivalent to $G \ge 0$).
-        \item \texttt{apply le\_of\_tendsto'}: If a sequence converges to $L$ and every term is $\le C$, then $L \le C$. Here we check if $-a_n \le 0$ for all $n$.
-        \item \texttt{simp only [neg\_nonpos]}: This simplifies to checking $a_n \ge 0$.
-        \item \texttt{apply mul\_nonneg}: $a_n$ is a product of $1/2^n$ and a log. Both must be non-negative.
-        \item \texttt{positivity}: $1/2^n > 0$ is trivial.
-        \item \texttt{Real.log\_nonneg}: $\log(x) \ge 0$ if $x \ge 1$.
-        \item \texttt{le\_max\_left}: Our term is $\log(\max(1, |z_n|))$. Since $\max(1, \dots) \ge 1$, the log is non-negative.
-    \item \texttt{linarith}: Conclude $G \ge 0$ from $-G \le 0$.
-\end{itemize}
+\subsection*{green\_function\_functional\_eq}\label{green_function_functional_eq}
+The Green's function satisfies the functional equation \texttt{G(f(z)) = 2 * G(z)}.
+    Proof idea:
+    \texttt{G(f(z)) = lim\_\{n$\to$∞\} 1/2\textasciicircum{}n log |f\textasciicircum{}n(f(z))|}
+    \texttt{= lim\_\{n$\to$∞\} 1/2\textasciicircum{}n log |f\textasciicircum{}\{n+1\}(z)|}
+    \texttt{= lim\_\{n$\to$∞\} 2 * (1/2\textasciicircum{}\{n+1\} log |f\textasciicircum{}\{n+1\}(z)|)}
+    \texttt{= 2 * G(z)}.
 
-\begin{proof}
-The iterate formula follows by induction from the functional equation $G(f(w))=2G(w)$: the base case is trivial and the inductive step applies the functional equation to $w=f^n(z)$ then simplifies $2\cdot 2^n=2^{n+1}$.
-\end{proof}
+\textit{(See code: green\_function\_functional\_eq)}
 
-\subsubsection{Iteration Property}
+\subsection*{green\_function\_nonneg}\label{green_function_nonneg}
+The Green's function is non-negative.
 
-\begin{lstlisting}[language=Lean]
-lemma green_function_iterate (c z : $\mathbb{C}$) (n : $\mathbb{N}$) :
-    green_function c (orbit c z n) = 2^n * green_function c z := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    rw [orbit_succ, green_function_functional_eq, ih]
-    rw [pow_succ]
-    ring
-\end{lstlisting}
+\textit{(See code: green\_function\_nonneg)}
 
-\textbf{Explanation:}
-\begin{itemize}
-    \item \texttt{induction n}: We proceed by induction on the number of iterates.
-    \item \texttt{zero}: Base case $n=0$: $G(z) = 1 \cdot G(z)$, which is trivial.
-    \item \texttt{succ n ih}: Inductive step. Assume $G(f^n(z)) = 2^n G(z)$.
-    \item \texttt{rw [orbit\_succ]}: Rewrite $f^{n+1}(z)$ as $f(f^n(z))$.
-    \item \texttt{rw [green\_function\_functional\_eq]}: Apply $G(f(w)) = 2 G(w)$ with $w = f^n(z)$.
-    \item \texttt{rw [ih]}: Substitute the inductive hypothesis: $2 \cdot (2^n G(z))$.
-    \item \texttt{ring}: Algebraic simplification to show $2 \cdot 2^n = 2^{n+1}$.
-\end{itemize}
+\subsection*{green\_function\_eq\_zero\_iff\_mem\_K}\label{green_function_eq_zero_iff_mem_K}
+A point is in the filled Julia set iff its Green's function is zero.
+    Proof idea:
+    *   \texttt{$\to$}: If \texttt{G(z) = 0}, suppose \texttt{z $\notin$ K(c)}. Then \texttt{z} escapes, and we can show \texttt{G(z) > 0}
+        (using the positive growth rate outside \texttt{K(c)}). Contradiction.
+    *   \texttt{←}: If \texttt{z $\in$ K(c)}, the orbit is bounded, so \texttt{potential\_seq} converges to 0.
 
-\begin{proof}
-By induction on $n$: the base case $n=0$ is trivial. For the inductive step, using \texttt{orbit\_succ} and the functional equation we have
+\textit{(See code: green\_function\_eq\_zero\_iff\_mem\_K)}
 
-\[
-G(\text{orbit } c\ z\ (n+1)) = G(fc\ c\ (\text{orbit } c\ z\ n)) = 2\,G(\text{orbit } c\ z\ n) = 2\cdot(2^n\,G(z)) = 2^{n+1}\,G(z).
-\]
+\subsection*{green\_function\_pos\_iff\_not\_mem\_K}\label{green_function_pos_iff_not_mem_K}
+The Green's function is positive on the basin of infinity.
 
-This completes the induction.
-\end{proof}
+\textit{(See code: green\_function\_pos\_iff\_not\_mem\_K)}
 
-\subsection{Positivity and Characterization of K(c)}
-
-\subsubsection{Positivity at Infinity}
-
-\begin{lstlisting}[language=Lean]
-lemma green_function_pos_of_large_norm (c z : $\mathbb{C}$) (h : $\|$z$\|$ > escape_bound c) :
-    0 < green_function c z := by
-  have h_conv : Tendsto (potential_seq c z) atTop ($\mathcal{N}$ (green_function c z)) :=
-    green_function_eq_lim c z
-  
-  let M := 2 * $\|$c$\|$ / (escape_bound c)^2
-  have h_diff : $\forall$ k, $\|$orbit c z k$\|$ > escape_bound c $\to$
-      dist (potential_seq c z k) (potential_seq c z (k + 1)) $\le$ (1 / 2 ^ (k + 1)) * M := by
-    intro k hk
-    exact potential_seq_diff_le c z k hk
-  
-  have h_orbit_large : $\forall$ k, $\|$orbit c z k$\|$ > escape_bound c := by
-    intro k
-    have h_R : $\|$z$\|$ > R c := lt_of_le_of_lt (escape_bound_ge_R c) h
-    have := norm_orbit_ge_of_norm_ge_R c z k h_R
-    apply lt_of_lt_of_le h this
-  
-  have h_cauchy : $\forall$ k, dist (potential_seq c z k) (potential_seq c z (k + 1)) $\le$ (1 / 2 ^ (k + 1)) * M :=
-    fun k => h_diff k (h_orbit_large k)
-  
-  -- (Omitted: Summation of geometric series to bound total distance)
-  
-  have h_a0 : potential_seq c z 0 = Real.log $\|$z$\|$ := by
-    simp [potential_seq]
-    rw [max_eq_right]
-    apply le_trans (le_trans one_le_two (R_ge_two c))
-    apply le_trans (escape_bound_ge_R c) (le_of_lt h)
-  
-  -- (Omitted: Final inequality check)
-\end{lstlisting}
-
-\textbf{Explanation:}
-\begin{itemize}
-    \item \texttt{h\_conv}: We start with the fact that the sequence converges to $G(z)$.
-    \item \texttt{M}: We define a constant $M$ related to the convergence rate.
-    \item \texttt{h\_diff}: We use a lemma from `GreenLemmas` that bounds $|a_k - a_{k+1}|$ if the orbit is large.
-    \item \texttt{h\_orbit\_large}: We prove the condition "orbit is large" holds for all $k$.
-        \begin{itemize}
-            \item Since $|z| > \text{escape\_bound} \ge R(c)$, the point escapes.
-            \item \texttt{norm\_orbit\_ge\_of\_norm\_ge\_R}: The norm of escaping points is non-decreasing, so $|f^k(z)| \ge |z| > \text{escape\_bound}$.
-        \end{itemize}
-    \item \texttt{h\_cauchy}: We combine these to get an unconditional bound on differences for all $k$.
-    \item \texttt{h\_dist\_0\_L}: (In full proof) We sum the geometric series $\sum M/2^{k+1} = M$ to show $|G(z) - a_0| \le M$.
-    \item \texttt{h\_a0}: We compute the first term $a_0 = \log|z|$ (since $|z|$ is large, $\max(1, |z|) = |z|$).
-    \item \textbf{Conclusion}: $G(z) \ge \log|z| - M$. Since $|z|$ is very large, $\log|z|$ dominates the small error term $M$, so $G(z) > 0$.
-\end{itemize}
-
-\begin{proof}
-For the forward direction, if $G(z)=0$ and $z$ escaped then for large $n$ one would have $G(f^n(z))>0$, but $G(f^n(z))=2^nG(z)=0$, contradiction. For the reverse direction, if $z\in K$ then $a_n(z)\to0$, so by uniqueness of limits $G(z)=0$; combined with non-negativity this gives the equality.
-\end{proof}
-
-\subsubsection{Characterization Theorem}
-
-\begin{lstlisting}[language=Lean]
-lemma green_function_eq_zero_iff_mem_K (c z : $\mathbb{C}$) :
-    green_function c z = 0 $\leftrightarrow$ z $\in$ K c := by
-  constructor
-  · intro h
-    by_contra h_esc
-    dsimp [K, boundedOrbit] at h_esc
-    push_neg at h_esc
-    obtain $\langle$n, hn$\rangle$ := h_esc (escape_bound c)
-    have h_pos : 0 < green_function c (orbit c z n) := 
-      green_function_pos_of_large_norm c (orbit c z n) hn
-    rw [green_function_iterate] at h_pos
-    rw [h, mul_zero] at h_pos
-    linarith
-  · intro h
-    apply le_antisymm
-    · have h_lim := potential_seq_converges_of_mem_K h
-      rw [green_function]
-      exact le_of_eq (tendsto_nhds_unique (green_function_eq_lim c z) h_lim)
-    · exact green_function_nonneg c z
-\end{lstlisting}
-
-\textbf{Explanation:}
-\begin{itemize}
-    \item \textbf{Forward ($\rightarrow$)}: If $G(z) = 0$, then $z \in K_c$.
-        \begin{itemize}
-            \item \texttt{by\_contra}: Assume $z \notin K_c$ (it escapes).
-            \item \texttt{obtain n}: Eventually the orbit exceeds the escape bound.
-            \item \texttt{h\_pos}: Once past the bound, $G(f^n(z)) > 0$ (proven above).
-            \item \texttt{rw [green\_function\_iterate]}: But $G(f^n(z)) = 2^n G(z)$.
-            \item \texttt{rw [h]}: Since $G(z)=0$, this implies $G(f^n(z)) = 0$, contradicting \texttt{h\_pos}.
-        \end{itemize}
-    \item \textbf{Backward ($\leftarrow$)}: If $z \in K_c$, then $G(z) = 0$.
-        \begin{itemize}
-            \item \texttt{h\_lim}: We appeal to the lemma `potential\_seq\_converges\_of\_mem\_K` which shows the sequence tends to 0 for bounded orbits.
-            \item \texttt{tendsto\_nhds\_unique}: Since the sequence tends to 0 and also to $G(z)$, $G(z)$ must be 0.
-            \item \texttt{le\_antisymm}: Technically we show $G(z) \le 0$ and $G(z) \ge 0$.
-        \end{itemize}
-\end{itemize}
-
-\begin{proof}
-If $G(z)=0$ but $z\notin K_c$ then for some $n$ the iterate $f^n(z)$ lies beyond the escape bound, so by positivity at infinity $G(f^n(z))>0$. But $G(f^n(z))=2^nG(z)=0$, contradiction, hence $z\in K_c$. Conversely, if $z\in K_c$ the potential sequence tends to $0$, so by uniqueness of limits $G(z)=0$; combined with non-negativity this yields the equality.
-\end{proof}
-
-\subsubsection{Positivity on Basin of Infinity}
-
-\begin{lstlisting}[language=Lean]
-lemma green_function_pos_iff_not_mem_K (c z : $\mathbb{C}$) :
-    0 < green_function c z $\leftrightarrow$ z $\notin$ K c := by
-  rw [$\leftarrow$ not_iff_not]
-  push_neg
-  have : green_function c z $\le$ 0 $\leftrightarrow$ green_function c z = 0 := by
-    constructor
-    · intro h; exact le_antisymm h (green_function_nonneg c z)
-    · intro h; rw [h]
-  rw [this]
-  rw [green_function_eq_zero_iff_mem_K]
-\end{lstlisting}
-
-\textbf{Explanation:}
-\begin{itemize}
-    \item \texttt{rw [$\leftarrow$ not\_iff\_not]}: We prove the contrapositive: $\neg(G > 0) \iff z \in K_c$.
-    \item \texttt{push\_neg}: $\neg(G > 0)$ becomes $G \le 0$.
-    \item \texttt{have ... le\_antisymm}: Since $G \ge 0$ always, $G \le 0$ implies $G=0$.
-    \item \texttt{rw [green\_function\_eq\_zero\_iff\_mem\_K]}: We reduce to the previous theorem: $G=0 \iff z \in K_c$.
-\end{itemize}
-
-\begin{proof}
-Since $G(z)\ge0$ for all $z$, the negation of $0<G(z)$ is $G(z)\le0$, and together these force $G(z)=0$. Therefore $0<G(z)$ holds exactly when $G(z)\neq0$, which by the previous lemma $\texttt{green\_function\_eq\_zero\_iff\_mem\_K}$ is equivalent to $z\notin K_c$.
-\end{proof}

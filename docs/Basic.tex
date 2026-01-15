@@ -1,117 +1,46 @@
-\section{Basic Definitions}
-\label{sec:Basic}
+\section{Basic}
+\textit{Source: \texttt{Quadratic/Complex/Basic.lean}}
 
-This section describes the verification of the file \texttt{Mlc/Quadratic/Complex/Basic.lean}. It establishes the fundamental definitions for the dynamics of quadratic polynomials, utilizing Lyubich's notation.
+\begin{quotation}
+\textbf{Quadratic family basics (Lyubich I–II notation)}
 
-\subsection{Quadratic Family}
+We set up the quadratic family \texttt{f\_c(z) = z\textasciicircum{}2 + c}, iterates, filled Julia set \texttt{K(c)},
+and Julia set \texttt{J(c) = $\partial$K(c)}. We also state (and stub) the standard escape and
+compactness lemmas you’ll prove next.
+\end{quotation}
 
-We set up the quadratic family $f_c(z) = z^2 + c$, its iterates, the filled Julia set $K(c)$, and the Julia set $J(c) = \partial K(c)$.
+\subsection*{fc}\label{fc}
+The quadratic polynomial \texttt{f\_c(z) = z\textasciicircum{}2 + c}.
 
-\subsubsection{Definitions}
+\textit{(See code: fc)}
 
-We begin by defining the quadratic polynomial and its orbit.
+\subsection*{orbit}\label{orbit}
+The forward orbit of \texttt{z0} under \texttt{f\_c}.
 
-\begin{lstlisting}[language=Lean]
-/-- The quadratic polynomial `f_c(z) = z^2 + c`. -/
-def fc (c : $\mathbb{C}$) : $\mathbb{C}$ $\to$ $\mathbb{C}$ := fun z => z^2 + c
+\textit{(See code: orbit)}
 
-/-- The forward orbit of `z0` under `f_c`. -/
-def orbit (c : $\mathbb{C}$) (z0 : $\mathbb{C}$) : $\mathbb{N}$ $\to$ $\mathbb{C}$ := fun n => (Nat.iterate (fc c) n) z0
-\end{lstlisting}
+\subsection*{boundedOrbit}\label{boundedOrbit}
+Boundedness of an orbit.
 
-\textbf{Explanation:}
-\begin{itemize}
-    \item \texttt{fc}: Defines the map $z \mapsto z^2 + c$.
-    \item \texttt{orbit}: Defines the sequence $z_n = f_c^n(z_0)$ using \texttt{Nat.iterate}.
-\end{itemize}
+\textit{(See code: boundedOrbit)}
 
-\subsubsection{Orbit Lemmas}
+\subsection*{K}\label{K}
+Filled Julia set.
 
-\begin{lstlisting}[language=Lean]
-@[simp] lemma orbit_zero (c z : $\mathbb{C}$) : orbit c z 0 = z := rfl
+\textit{(See code: K)}
 
-@[simp] lemma orbit_succ (c z : $\mathbb{C}$) (n : $\mathbb{N}$) :
-    orbit c z (n+1) = fc c (orbit c z n) := by
-  simpa [orbit, Function.comp] using
-    congrArg (fun g => g z) (Function.iterate_succ' (fc c) n)
-\end{lstlisting}
+\subsection*{J}\label{J}
+Julia set as the topological boundary of \texttt{K(c)}.
 
-\textbf{Explanation:}
-These lemmas provide the recursive structure of the orbit:
-\begin{itemize}
-    \item \texttt{orbit\_zero}: The 0-th iterate is the starting point $z$.
-    \item \texttt{orbit\_succ}: The $(n+1)$-th iterate is $f_c$ applied to the $n$-th iterate. The proof uses properties of function iteration.
-\end{itemize}
+\textit{(See code: J)}
 
-\subsection{Julia and Mandelbrot Sets}
+\subsection*{MandelbrotSet}\label{MandelbrotSet}
+The Mandelbrot set is the set of parameters \texttt{c} for which the orbit of \texttt{0} is bounded.
 
-\subsubsection{Boundedness and Sets}
+\textit{(See code: MandelbrotSet)}
 
-\begin{lstlisting}[language=Lean]
-/-- Boundedness of an orbit. -/
-def boundedOrbit (c z : $\mathbb{C}$) : Prop :=
-  $\exists$ M : $\mathbb{R}$, $\forall$ n, $\|$orbit c z n$\|$ $\le$ M
+\subsection*{R}\label{R}
+A convenient escape radius depending on \texttt{‖c‖}.
 
-/-- Filled Julia set. -/
-def K (c : $\mathbb{C}$) : Set $\mathbb{C}$ := { z | boundedOrbit c z }
+\textit{(See code: R)}
 
-/-- Julia set as the topological boundary of `K(c)`. -/
-def J (c : $\mathbb{C}$) : Set $\mathbb{C}$ := frontier (K c)
-
-/-- The Mandelbrot set is the set of parameters `c` for which the orbit of `0` is bounded. -/
-def MandelbrotSet : Set $\mathbb{C}$ := { c | boundedOrbit c 0 }
-\end{lstlisting}
-
-\textbf{Explanation:}
-\begin{itemize}
-    \item \texttt{boundedOrbit}: A proposition stating that the sequence of norms $|f_c^n(z)|$ is bounded by some real number $M$.
-    \item \texttt{K}: The set of points $z$ with bounded orbits (filled Julia set).
-    \item \texttt{J}: The topological boundary of $K$.
-    \item \texttt{MandelbrotSet}: The set of parameters $c$ where the critical point $0$ has a bounded orbit ($0 \in K_c$).
-\end{itemize}
-
-\subsection{Elementary Norm Facts and Escape Radius}
-
-\subsubsection{Norm Squared}
-
-\begin{lstlisting}[language=Lean]
-@[simp] lemma norm_sq (z : $\mathbb{C}$) : $\|$z^2$\|$ = $\|$z$\|^2$ := by
-  simp [pow_two]
-\end{lstlisting}
-
-\textbf{Explanation:}
-A simple helper lemma stating $|z^2| = |z|^2$.
-
-\subsubsection{Escape Radius R(c)}
-
-\begin{lstlisting}[language=Lean]
-/-- A convenient escape radius depending on `$\|$c$\|$`. -/
-def R (c : $\mathbb{C}$) : $\mathbb{R}$ := max 2 (1 + $\|$c$\|$)
-
-@[simp] lemma R_ge_two (c : $\mathbb{C}$) : R c $\ge$ 2 := by simp [R]
-@[simp] lemma R_ge_one_plus_c (c : $\mathbb{C}$) : R c $\ge$ 1 + $\|$c$\|$ := by simp [R]
-\end{lstlisting}
-
-\textbf{Explanation:}
-We define the escape radius $R(c) = \max(2, 1+|c|)$. This specific choice is standard in the literature (e.g., Milnor, Lyubich) because:
-\begin{itemize}
-    \item $R(c) \ge 2$: Ensures $|z| > 2 \implies |z|^2 > 2|z|$, helping expansion.
-    \item $R(c) > |c|$: Ensures the quadratic term dominates the constant term $c$.
-\end{itemize}
-
-\subsection{Connectivity Axioms}
-
-\begin{lstlisting}[language=Lean]
-/-- The Mandelbrot set is connected. -/
-axiom mandelbrot_set_connected : IsConnected MandelbrotSet
-
-/-- The filled Julia set is connected if c is in the Mandelbrot set. -/
-axiom filled_julia_set_connected {c : $\mathbb{C}$} (h : c $\in$ MandelbrotSet) : IsConnected (K c)
-\end{lstlisting}
-
-\textbf{Explanation:}
-We state two deep results from Douady and Hubbard as axioms for this formalization:
-\begin{itemize}
-    \item The Mandelbrot set is connected.
-    \item For $c \in \mathcal{M}$, the filled Julia set $K_c$ is connected.
-\end{itemize}

@@ -1,117 +1,31 @@
-\section{Yoccoz's Theorem}
-\label{sec:Yoccoz}
+\section{Yoccoz}
+\textit{Source: \texttt{Yoccoz.lean}}
 
-This section describes the verification of the file \texttt{Mlc/Yoccoz.lean}. It proves the central result for non-renormalizable parameters: the divergence of puzzle moduli implies the shrinking of puzzle pieces.
-
-\subsection{Non-Renormalizability}
-
-We define non-renormalizability via the combinatorial condition of divergent moduli.
-
-\begin{lstlisting}[language=Lean]
-/-- Non-renormalizable parameters.
+This module contains the formal definitions and proofs.
+\subsection*{NonRenormalizable}\label{NonRenormalizable}
+Non-renormalizable parameters.
     For the purpose of this plan, we define non-renormalizable parameters
     as those for which the Yoccoz puzzle moduli diverge.
-    The deep work is then in the dichotomy axiom. -/
-def NonRenormalizable (c : ℂ) : Prop :=
-    ¬ Summable (fun n => modulus (PuzzleAnnulus c n))
+    The deep work is then in the dichotomy axiom.
 
-/-- Non-renormalizable parameters have divergent moduli. -/
-theorem non_renormalizable_moduli_diverge (c : ℂ) (h : NonRenormalizable c) :
-    ¬ (Summable fun n => modulus (PuzzleAnnulus c n)) := h
-\end{lstlisting}
+\textit{(See code: NonRenormalizable)}
 
-\noindent
-\textbf{Simple proof idea:}
-\begin{itemize}
-    \item The definition \texttt{NonRenormalizable c} is exactly the proposition that the sequence of annulus moduli is not summable.
-    \item The Lean theorem \texttt{non\_renormalizable\_moduli\_diverge} is therefore a one-line wrapper that returns the hypothesis: given \texttt{h : NonRenormalizable c}, the conclusion follows immediately by returning \texttt{h}.
-\end{itemize}
+\subsection*{non\_renormalizable\_moduli\_diverge}\label{non_renormalizable_moduli_diverge}
+Non-renormalizable parameters have divergent moduli.
 
-\begin{proof}
-Immediate from the definition: the hypothesis \texttt{h} is the required conclusion, so the proof is simply \texttt{exact h}.
-\end{proof}
+\textit{(See code: non\_renormalizable\_moduli\_diverge)}
 
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item \texttt{NonRenormalizable c}: Defined as the negation of summability for the moduli of puzzle annuli.
-    \item This definition serves as the hypothesis for applying Grötzsch's criterion.
-\end{itemize}
+\subsection*{yoccoz\_theorem}\label{yoccoz_theorem}
+Yoccoz's Theorem: Divergence of moduli implies point intersection.
+    Proof idea:
+    *   If \texttt{c $\in$ M}: We apply **Grötzsch's criterion** to the nested sequence of dynamical puzzle pieces.
+        These pieces contain 0 and are connected. The divergence of the moduli of the annuli between
+        them forces the intersection of the pieces to be a single point \texttt{\{0\}}.
+    *   If \texttt{c $\notin$ M}: The orbit of 0 escapes. For large enough \texttt{n}, the potential level \texttt{1/2\textasciicircum{}n}
+        is smaller than \texttt{G(0)}, so \texttt{0} is no longer in the puzzle piece (which is defined by \texttt{G(z) < 1/2\textasciicircum{}n}).
+        Thus, the puzzle pieces eventually become empty. This would imply the sum of moduli is finite
+        (sum of zeros), contradicting the divergence hypothesis. Thus, this case is impossible under
+        the assumption of divergence.
 
-\subsection{Yoccoz's Theorem}
+\textit{(See code: yoccoz\_theorem)}
 
-The main theorem establishes that for these parameters, the dynamical puzzle pieces around the critical point shrink to exactly $\{0\}$.
-
-\begin{lstlisting}[language=Lean]
-theorem yoccoz_theorem (c : ℂ) :
-    ¬ (Summable fun n => modulus (PuzzleAnnulus c n)) →
-    (⋂ n, DynamicalPuzzlePiece c n 0) = {0} := by
-  intro h_div
-  by_cases hc : c ∈ MandelbrotSet
-  · apply groetzsch_criterion
-    · intro n
-      apply dynamical_puzzle_piece_nested
-    · intro n
-      apply mem_dynamical_puzzle_piece_self c hc
-    · intro n
-      have h_ne : (DynamicalPuzzlePiece c n 0).Nonempty := ⟨0, mem_dynamical_puzzle_piece_self c hc n⟩
-      rw [DynamicalPuzzlePiece] at h_ne ⊢
-      exact ⟨h_ne, isPreconnected_connectedComponentIn⟩
-    · exact h_div
-  · exfalso
-    apply h_div
-    rcases dynamical_puzzle_piece_empty_of_large_n c hc with ⟨N, hN⟩
-    apply summable_of_finite_support
-    have : (Function.support fun n ↦ modulus (PuzzleAnnulus c n)) ⊆ Iio N := by
-      intro n hn
-      rw [Function.mem_support, ne_eq] at hn
-      by_contra h_ge
-      simp at h_ge
-      have : modulus (PuzzleAnnulus c n) = 0 := by
-        rw [PuzzleAnnulus]
-        have h_empty : DynamicalPuzzlePiece c n 0 = ∅ := by
-          ext x
-          simp
-          intro hx
-          have h0 : 0 ∈ DynamicalPuzzlePiece c n 0 := by
-            rw [DynamicalPuzzlePiece] at hx ⊢
-            apply mem_connectedComponentIn
-            exact connectedComponentIn_nonempty_iff.1 ⟨x, hx⟩
-          exact hN n h_ge h0
-        rw [h_empty]
-        simp
-        exact modulus_empty
-      contradiction
-    exact Set.Finite.subset (Set.finite_Iio N) this
-\end{lstlisting}
-
-\noindent
-\textbf{Detailed Explanation:}
-\begin{itemize}
-    \item \textbf{Goal}: Prove $\bigcap P_n(0) = \{0\}$ assuming divergence of moduli.
-    \item \textbf{Case 1: $c \in \mathcal{M}$}:
-        \begin{itemize}
-            \item We apply \texttt{groetzsch\_criterion}.
-            \item \textbf{Hypotheses Check}:
-                \begin{itemize}
-                    \item \texttt{nested}: Verified by \texttt{dynamical\_puzzle\_piece\_nested}.
-                    \item \texttt{contains 0}: Verified by \texttt{mem\_dynamical\_puzzle\_piece\_self}.
-                    \item \texttt{connected}: Verified by construction (connected components).
-                    \item \texttt{divergence}: Assumed by hypothesis \texttt{h\_div}.
-                \end{itemize}
-            \item The criterion then immediately yields the result.
-        \end{itemize}
-    \item \textbf{Case 2: $c \notin \mathcal{M}$}:
-        \begin{itemize}
-            \item We derive a contradiction.
-            \item If $c \notin \mathcal{M}$, then the puzzle pieces eventually become empty (\texttt{dynamical\_\allowbreak puzzle\_\allowbreak piece\_\allowbreak empty\_\allowbreak of\_\allowbreak large\_n}).
-            \item This means the annuli become empty for large $n$, so their moduli are 0.
-            \item A sequence of non-negative terms that is eventually 0 has a finite sum (\texttt{summable\_\allowbreak of\_\allowbreak finite\_\allowbreak support}).
-            \item This contradicts the divergence hypothesis \texttt{h\_div}.
-            \item Thus, non-renormalizable parameters (by this definition) must lie in the Mandelbrot set.
-        \end{itemize}
-\end{itemize}
-
-\begin{proof}
-Simplified proof: If $c\in\mathcal{M}$, apply Grötzsch's criterion to the nested, connected dynamical pieces that all contain $0$; divergence of the annulus moduli forces their intersection to be the single point $\{0\}$. If $c\notin\mathcal{M}$ the pieces are eventually empty, so the moduli vanish and their sum is finite, contradicting the divergence hypothesis. Therefore only the first case can occur and the intersection equals $\{0\}$.
-\end{proof}

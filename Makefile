@@ -32,7 +32,6 @@ auto-build: .cache_marker
 # Generate LaTeX documentation for all Lean files
 docs:
 	cd scripts && poetry run python3 generate_text_docs.py
-	cd scripts && poetry run python3 graph_gen.py
 
 # Compile proof.tex to PDF
 # Runs xelatex twice to resolve cross-references and bookmarks
