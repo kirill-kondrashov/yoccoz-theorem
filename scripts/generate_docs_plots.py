@@ -276,17 +276,25 @@ def plot_basic_connectivity():
     print("Generating basic_connectivity.png...")
     # Connected (c in M)
     c1 = -0.12 + 0.75j
-    # Disconnected (c not in M)
-    c2 = -0.12 + 0.85j # slightly outside
+    # Disconnected (c not in M) - pick a value further out to fragment more clearly
+    c2 = -0.72 + 0.3j # Near boundary but maybe not fragmented enough?
+    # Better: c = 0.3 is hyperbolic, simple connected.
+    # c = -2 is tip.
+    # c = i is outside (M goes to ~0.7i).
+    # Let's pick something clearly outside like 0.3 + 0.6i (rabbit is near -0.12+0.75)
+    # Actually, for Cantor dust, we need c outside M. 
+    # Let's try c = -0.1 + 0.8j. M top is around 0.6-0.7 for Re=-0.1.
+    c2 = -0.1 + 0.8j 
     
+    # Increase resolution for dust
     extent = [-1.5, 1.5, -1.5, 1.5]
-    x = np.linspace(extent[0], extent[1], 300)
-    y = np.linspace(extent[2], extent[3], 300)
+    x = np.linspace(extent[0], extent[1], 500)
+    y = np.linspace(extent[2], extent[3], 500)
     X, Y = np.meshgrid(x, y)
     Z = X + 1j * Y
     
-    G1 = green_function(c1, Z)
-    G2 = green_function(c2, Z)
+    G1 = green_function(c1, Z, max_iter=150)
+    G2 = green_function(c2, Z, max_iter=150)
     
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     
@@ -294,12 +302,19 @@ def plot_basic_connectivity():
     axes[0].contourf(X, Y, G1, levels=[0, 0.001], colors=['black'])
     axes[0].set_title(f"Connected $K(c)$\n$c={c1} \in \mathcal{{M}}$")
     
+    # For Cantor set, we want to see many small islands.
+    # If G=0 is too small, we might miss it.
+    # Let's visualize the level sets close to 0 to hint at the dust.
     axes[1].imshow(G2, extent=extent, origin='lower', cmap='bone_r', vmax=0.5)
-    axes[1].contourf(X, Y, G2, levels=[0, 0.001], colors=['black'])
-    axes[1].set_title(f"Disconnected $K(c)$\n$c={c2} \\notin \mathcal{{M}}$")
+    # Plot contours close to 0 to show the dust accumulating
+    axes[1].contour(X, Y, G2, levels=[0.005, 0.01, 0.02], colors=['black', 'black', 'black'], linewidths=0.5, alpha=0.5)
+    # Fill "inside" very strictly
+    axes[1].contourf(X, Y, G2, levels=[0, 0.0001], colors=['black'])
+    
+    axes[1].set_title(f"Disconnected $K(c)$ (Cantor Dust)\n$c={c2} \\notin \mathcal{{M}}$")
     
     plt.tight_layout()
-    plt.savefig('../docs/images/basic_connectivity.png', dpi=150)
+    plt.savefig('../docs/images/basic_connectivity.png', dpi=300) # Higher DPI for dust
     plt.close()
 
 def plot_escape_growth():
