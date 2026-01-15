@@ -41,4 +41,5 @@ pdf:
 # Clean build artifacts
 clean:
 	rm -f docs/proof.aux docs/proof.log docs/proof.out docs/proof.pdf .cache_marker
-	rm -rf docs/*.tex
+	# Delete only generated tex files
+	rm -f docs/Yoccoz.tex docs/Green.tex docs/GreenLemmas.tex docs/Groetzsch.tex docs/Puzzle.tex docs/PuzzleLemmas.tex

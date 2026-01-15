@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import re
 
-SOURCE_DIR = Path("../Mlc")
+SOURCE_DIR = Path("../Yoccoz")
 DOCS_DIR = Path("../docs")
 DOCS_DIR.mkdir(exist_ok=True)
 

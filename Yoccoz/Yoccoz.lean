@@ -1,8 +1,8 @@
-import Mlc.Quadratic.Complex.Basic
-import Mlc.Quadratic.Complex.Green
-import Mlc.Quadratic.Complex.Puzzle
-import Mlc.Quadratic.Complex.PuzzleLemmas
-import Mlc.Quadratic.Complex.Groetzsch
+import Yoccoz.Quadratic.Complex.Basic
+import Yoccoz.Quadratic.Complex.Green
+import Yoccoz.Quadratic.Complex.Puzzle
+import Yoccoz.Quadratic.Complex.PuzzleLemmas
+import Yoccoz.Quadratic.Complex.Groetzsch
 import Mathlib.Topology.Connected.LocallyConnected
 import Mathlib.Topology.Algebra.InfiniteSum.Basic
 import Mathlib.Data.Set.Finite.Basic

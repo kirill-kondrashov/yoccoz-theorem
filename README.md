@@ -21,11 +21,11 @@ The benefit of using Lean is that it is verified by the Lean kernel, even when i
 Some of the statements used in the proof are stated as `axiom`s (keyword in Lean). They include:
 
 ### 1. Yoccoz Puzzles & Geometry
-*   [`groetzsch_inequality`](Mlc/Quadratic/Complex/Groetzsch.lean#L64): Grötzsch's Inequality (Superadditivity of modulus).
+*   [`groetzsch_inequality`](Yoccoz/Quadratic/Complex/Groetzsch.lean#L64): Grötzsch's Inequality (Superadditivity of modulus).
     *   Source: [Milnor, Dynamics in One Complex Variable, Corollary B.5] (Local: `refs/9201272v1.pdf`)
     *   Note: This axiom is used to prove `modulus_summable_of_nontrivial_intersection`, which states that if the intersection of nested pieces is non-trivial, the sum of moduli converges.
 *   **Basic Properties**:
-    *   [`modulus_nonneg_ax`](Mlc/Quadratic/Complex/Groetzsch.lean#L50): Modulus is non-negative.
+    *   [`modulus_nonneg_ax`](Yoccoz/Quadratic/Complex/Groetzsch.lean#L50): Modulus is non-negative.
         *   Source: [Milnor, Dynamics in One Complex Variable] (Local: `refs/9201272v1.pdf`, Appendix B)
 
 ## Verification

@@ -1,6 +1,6 @@
-import Mlc.Quadratic.Complex.Basic
-import Mlc.Quadratic.Complex.Groetzsch
-import Mlc.Quadratic.Complex.Green
+import Yoccoz.Quadratic.Complex.Basic
+import Yoccoz.Quadratic.Complex.Groetzsch
+import Yoccoz.Quadratic.Complex.Green
 import Mathlib.Topology.Connected.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.SpecificLimits.Basic

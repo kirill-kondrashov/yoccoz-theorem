@@ -1,5 +1,5 @@
-import Mlc.Quadratic.Complex.Basic
-import Mlc.Quadratic.Complex.Escape
+import Yoccoz.Quadratic.Complex.Basic
+import Yoccoz.Quadratic.Complex.Escape
 
 namespace MLC.Quadratic
 

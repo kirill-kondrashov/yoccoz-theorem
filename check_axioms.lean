@@ -1,11 +1,11 @@
-import Mlc.Yoccoz
+import Yoccoz.Yoccoz
 import Lean
 
 open Lean Meta
 
 def main : IO UInt32 := do
   initSearchPath (← findSysroot)
-  let env ← importModules #[{ module := `Mlc.Yoccoz }] {}
+  let env ← importModules #[{ module := `Yoccoz.Yoccoz }] {}
   
   let name := ``MLC.yoccoz_theorem
   

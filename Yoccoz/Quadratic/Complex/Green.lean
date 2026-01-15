@@ -1,6 +1,6 @@
-import Mlc.Quadratic.Complex.Basic
-import Mlc.Quadratic.Complex.Escape
-import Mlc.Quadratic.Complex.GreenLemmas
+import Yoccoz.Quadratic.Complex.Basic
+import Yoccoz.Quadratic.Complex.Escape
+import Yoccoz.Quadratic.Complex.GreenLemmas
 
 /-!
 # Green's Function for the Quadratic Family
