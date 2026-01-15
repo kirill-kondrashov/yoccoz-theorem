@@ -1,25 +1,47 @@
-\section{Puzzle}
-\textit{Source: \texttt{Quadratic/Complex/Puzzle.lean}}
+\section{Puzzle Definitions}
+\label{sec:Puzzle}
 
-This module contains the formal definitions and proofs.
-\subsection*{DynamicalPuzzlePiece}\label{DynamicalPuzzlePiece}
-The dynamical puzzle piece of depth n containing z.
-    Definition: The connected component of \texttt{\{z | G(z) < 1/2\textasciicircum{}n\}} containing \texttt{z}.
-    These pieces form the basis of the Yoccoz puzzle construction.
+The Yoccoz puzzle is a combinatorial structure constructed from the external rays and equipotential lines of the Green's function. It provides a sequence of nested partitions of the dynamical plane (and parameter plane) that allows us to study the local connectivity of the Julia set.
 
-\textit{(See code: DynamicalPuzzlePiece)}
+\subsection{Dynamical Puzzle Piece}
 
-\subsection*{PuzzleAnnulus}\label{PuzzleAnnulus}
-The annulus between two nested puzzle pieces around the critical point.
-    Definition: The annulus between two nested puzzle pieces \texttt{P\_n \textbackslash{} P\_\{n+1\}}.
-    The sum of their moduli determines renormalizability.
+In the simplified model used for this formalization, a puzzle piece is defined by the level sets of the Green's function.
 
-\textit{(See code: PuzzleAnnulus)}
+\begin{definition}[Dynamical Puzzle Piece]
+For a parameter $c$ and depth $n \in \mathbb{N}$, the dynamical puzzle piece $P_n(z)$ containing a point $z$ is the connected component of the sublevel set
+\[ \{ w \in \mathbb{C} \mid G_c(w) < 2^{-n} \} \]
+that contains $z$.
+\end{definition}
 
-\subsection*{ParaPuzzlePiece}\label{ParaPuzzlePiece}
-A para-puzzle piece in the parameter plane.
-    Definition: The set of parameters \texttt{c} for which the critical point 0 lies in the
-    dynamical puzzle piece of depth \texttt{n}.
+In particular, we are interested in the sequence of puzzle pieces containing the critical point $0$:
+\[ P_n(0) = \text{component of } \{ w \mid G_c(w) < 2^{-n} \} \text{ containing } 0. \]
 
-\textit{(See code: ParaPuzzlePiece)}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/puzzle_pieces.png}
+    \caption{Dynamical Puzzle Pieces for the Basilica ($c=-1$). The contours represent the equipotential lines $G_c(z) = 2^{-n}$ for $n=0, 1, 2, 3$. The central region containing $0$ shrinks as $n$ increases. The puzzle pieces are the connected regions bounded by these curves.}
+    \label{fig:puzzle_pieces}
+\end{figure}
+
+\subsection{Puzzle Annulus}
+
+The geometry of the puzzle is controlled by the annuli formed between consecutive pieces.
+
+\begin{definition}[Puzzle Annulus]
+The puzzle annulus at depth $n$ is the difference between the puzzle piece at depth $n$ and the one at depth $n+1$:
+\[ A_n = P_n(0) \setminus P_{n+1}(0). \]
+\end{definition}
+
+This annulus is fundamental to the application of Grötzsch's inequality. If the sum of moduli $\sum \operatorname{mod}(A_n)$ diverges, then the pieces $P_n(0)$ shrink to a point.
+
+\subsection{Para-Puzzle Piece}
+
+The construction lifts to the parameter plane, defining sets of parameters with similar combinatorial behavior.
+
+\begin{definition}[Para-Puzzle Piece]
+The para-puzzle piece $\mathcal{P}_n$ of depth $n$ is the set of parameters $c$ such that the critical point $0$ lies in its own puzzle piece of depth $n$:
+\[ \mathcal{P}_n = \{ c \in \mathbb{C} \mid 0 \in P_n(0) \text{ relative to } f_c \}. \]
+\end{definition}
+
+\textit{Formalization Note}: In Lean, these correspond to \texttt{DynamicalPuzzlePiece}, \texttt{PuzzleAnnulus}, and \texttt{ParaPuzzlePiece}.
 
