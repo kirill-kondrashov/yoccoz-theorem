@@ -12,6 +12,13 @@ For any $n \in \mathbb{N}$, the puzzle piece at depth $n+1$ is contained in the 
 \[ P_{n+1}(0) \subseteq P_n(0). \]
 \end{lemma}
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/puzzle_nesting.png}
+    \caption{Nesting Property. The puzzle pieces $P_n(0)$ (contours) form a nested sequence. $P_4 \subset P_3 \subset P_2 \subset P_1$. Each piece is contained within the previous one.}
+    \label{fig:puzzle_nesting}
+\end{figure}
+
 \begin{proof}[Proof Idea]
 (See Lean: \texttt{dynamical\_puzzle\_piece\_nested})
 
@@ -27,6 +34,13 @@ For parameters in the Mandelbrot set, the critical point never escapes, so it re
 \begin{lemma}[Persistence]
 If $c \in \mathcal{M}$, then for all $n$, the critical point $0$ is contained in $P_n(0)$.
 \end{lemma}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/puzzle_persistence.png}
+    \caption{Persistence Property. For $c \in \mathcal{M}$ (Douady Rabbit shown), the critical point $0$ (white dot) is inside the filled Julia set (black). Since $G_c(0)=0$, it is contained in every puzzle piece $P_n(0)$ (contours).}
+    \label{fig:puzzle_persistence}
+\end{figure}
 
 \begin{proof}[Proof Idea]
 (See Lean: \texttt{mem\_dynamical\_puzzle\_piece\_self})
@@ -44,6 +58,13 @@ Conversely, if the parameter is outside the Mandelbrot set, the Green's function
 If $c \notin \mathcal{M}$, there exists some $N$ such that for all $n \ge N$,
 \[ 0 \notin P_n(0). \]
 \end{lemma}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/puzzle_empty.png}
+    \caption{Eventual Empty Property. For $c \notin \mathcal{M}$, the critical point $0$ has positive Green's function potential $G_c(0) > 0$. As $n$ increases, the threshold $2^{-n}$ drops below $G_c(0)$, so $0$ eventually falls outside $P_n(0)$.}
+    \label{fig:puzzle_empty}
+\end{figure}
 
 \begin{proof}[Proof Idea]
 (See Lean: \texttt{dynamical\_puzzle\_piece\_empty\_of\_large\_n})

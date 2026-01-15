@@ -26,10 +26,24 @@ The \textbf{Julia Set} $J(c)$ is defined as the topological boundary of $K(c)$:
 J(c) = \partial K(c)
 \]
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/basic_julia.png}
+    \caption{The Filled Julia Set $K(c)$ (black) and its boundary, the Julia Set $J(c)$, for $c \approx -0.73 + 0.19i$. Points in black have bounded orbits; colored regions represent the basin of infinity with potential levels.}
+    \label{fig:basic_julia}
+\end{figure}
+
 The \textbf{Mandelbrot Set} $\mathcal{M}$ is the set of parameters $c$ for which the critical point $0$ has a bounded orbit:
 \[
 \mathcal{M} = \{ c \in \mathbb{C} \mid 0 \in K(c) \}
 \]
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/basic_mandelbrot.png}
+    \caption{The Mandelbrot Set $\mathcal{M}$ (black). It represents the set of parameters $c$ for which the Julia set $K(c)$ is connected.}
+    \label{fig:basic_mandelbrot}
+\end{figure}
 
 \subsection{Escape Radius}
 We define an escape radius $R(c)$ depending on the parameter $c$:

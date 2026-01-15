@@ -39,6 +39,13 @@ The puzzle annulus at depth $n$ is the difference between the puzzle piece at de
 \[ A_n = P_n(0) \setminus P_{n+1}(0). \]
 \end{definition}
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/puzzle_annulus.png}
+    \caption{Puzzle Annulus $A_n$. The shaded region represents the set of points where the Green's function potential is between $2^{-(n+1)}$ and $2^{-n}$. This annulus separates the puzzle piece at depth $n$ from the one at depth $n+1$.}
+    \label{fig:puzzle_annulus}
+\end{figure}
+
 This annulus is fundamental to the application of Grötzsch's inequality. If the sum of moduli $\sum \operatorname{mod}(A_n)$ diverges, then the pieces $P_n(0)$ shrink to a point.
 
 \subsection{Para-Puzzle Piece}
@@ -49,6 +56,13 @@ The construction lifts to the parameter plane, defining sets of parameters with 
 The para-puzzle piece $\mathcal{P}_n$ of depth $n$ is the set of parameters $c$ such that the critical point $0$ lies in its own puzzle piece of depth $n$:
 \[ \mathcal{P}_n = \{ c \in \mathbb{C} \mid 0 \in P_n(0) \text{ relative to } f_c \}. \]
 \end{definition}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/para_puzzle.png}
+    \caption{Para-Puzzle Pieces $\mathcal{P}_n$ in the parameter plane. The colors indicate regions where the critical point $0$ has a Green's function value less than $2^{-n}$. Note how these regions approximate the Mandelbrot set (black).}
+    \label{fig:para_puzzle}
+\end{figure}
 
 \textit{Formalization Note}: In Lean, these correspond to \texttt{DynamicalPuzzlePiece}, \texttt{PuzzleAnnulus}, and \texttt{ParaPuzzlePiece}.
 
