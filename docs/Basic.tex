@@ -1,46 +1,47 @@
-\section{Basic}
-\textit{Source: \texttt{Quadratic/Complex/Basic.lean}}
+\section{Basic Definitions}
+\label{sec:Basic}
 
-\begin{quotation}
-\textbf{Quadratic family basics (Lyubich I–II notation)}
+In this section, we establish the fundamental definitions for the dynamics of quadratic polynomials, following the standard notation (e.g., Lyubich).
 
-We set up the quadratic family \texttt{f\_c(z) = z\textasciicircum{}2 + c}, iterates, filled Julia set \texttt{K(c)},
-and Julia set \texttt{J(c) = $\partial$K(c)}. We also state (and stub) the standard escape and
-compactness lemmas you’ll prove next.
-\end{quotation}
+\subsection{The Quadratic Family}
+We consider the family of quadratic polynomials parametrized by $c \in \mathbb{C}$:
+\[
+f_c(z) = z^2 + c
+\]
+The forward orbit of a point $z_0 \in \mathbb{C}$ under $f_c$ is the sequence defined by:
+\[
+\text{orbit}_c(z_0, n) = f_c^{\circ n}(z_0)
+\]
+where $f_c^{\circ n}$ denotes the $n$-th iteration of $f_c$.
 
-\subsection*{fc}\label{fc}
-The quadratic polynomial \texttt{f\_c(z) = z\textasciicircum{}2 + c}.
+\subsection{Julia and Mandelbrot Sets}
+A point $z \in \mathbb{C}$ has a \textbf{bounded orbit} if there exists $M \in \mathbb{R}$ such that $|f_c^{\circ n}(z)| \le M$ for all $n$.
 
-\textit{(See code: fc)}
+The \textbf{Filled Julia Set}, denoted $K(c)$, is the set of points with bounded orbits:
+\[
+K(c) = \{ z \in \mathbb{C} \mid \text{orbit of } z \text{ is bounded} \}
+\]
+The \textbf{Julia Set} $J(c)$ is defined as the topological boundary of $K(c)$:
+\[
+J(c) = \partial K(c)
+\]
 
-\subsection*{orbit}\label{orbit}
-The forward orbit of \texttt{z0} under \texttt{f\_c}.
+The \textbf{Mandelbrot Set} $\mathcal{M}$ is the set of parameters $c$ for which the critical point $0$ has a bounded orbit:
+\[
+\mathcal{M} = \{ c \in \mathbb{C} \mid 0 \in K(c) \}
+\]
 
-\textit{(See code: orbit)}
+\subsection{Escape Radius}
+We define an escape radius $R(c)$ depending on the parameter $c$:
+\[
+R(c) = \max(2, 1 + |c|)
+\]
+It is well-known that if the modulus of an iterate exceeds $R(c)$, the orbit escapes to infinity.
 
-\subsection*{boundedOrbit}\label{boundedOrbit}
-Boundedness of an orbit.
+\subsection{Fundamental Axioms}
+We assume two deep results from the theory of complex dynamics as axioms for this formalization:
 
-\textit{(See code: boundedOrbit)}
-
-\subsection*{K}\label{K}
-Filled Julia set.
-
-\textit{(See code: K)}
-
-\subsection*{J}\label{J}
-Julia set as the topological boundary of \texttt{K(c)}.
-
-\textit{(See code: J)}
-
-\subsection*{MandelbrotSet}\label{MandelbrotSet}
-The Mandelbrot set is the set of parameters \texttt{c} for which the orbit of \texttt{0} is bounded.
-
-\textit{(See code: MandelbrotSet)}
-
-\subsection*{R}\label{R}
-A convenient escape radius depending on \texttt{‖c‖}.
-
-\textit{(See code: R)}
-
+\begin{itemize}
+    \item \textbf{Connectivity of $\mathcal{M}$}: The Mandelbrot set $\mathcal{M}$ is connected (Douady and Hubbard, 1984).
+    \item \textbf{Connectivity of $K(c)$}: For any $c \in \mathcal{M}$, the filled Julia set $K(c)$ is connected (Douady and Hubbard, 1984).
+\end{itemize}

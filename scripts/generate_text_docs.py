@@ -8,9 +8,8 @@ DOCS_DIR.mkdir(exist_ok=True)
 
 FILES = [
     "Yoccoz",
-    "Quadratic/Complex/Groetzsch", "Quadratic/Complex/Basic", "Quadratic/Complex/Green",
-    "Quadratic/Complex/GreenLemmas", "Quadratic/Complex/Puzzle", "Quadratic/Complex/PuzzleLemmas",
-    "Quadratic/Complex/Escape"
+    "Quadratic/Complex/Groetzsch", "Quadratic/Complex/Green",
+    "Quadratic/Complex/GreenLemmas", "Quadratic/Complex/Puzzle", "Quadratic/Complex/PuzzleLemmas"
 ]
 
 def sanitize_tex(text):
@@ -127,7 +126,7 @@ def generate_stub(lean_file):
 
     # Simple regex to find theorems and their docstrings
     # Matches: /-- doc -/ theorem/lemma name ... :=
-    pattern_lean4 = re.compile(r'/--(.*?)-/\s*(?:theorem|lemma|def|class|structure|instance)\s+(\w+)', re.DOTALL)
+    pattern_lean4 = re.compile(r'/--(.*?)-/\s*(?:theorem|lemma|def|class|structure|instance|axiom)\s+(\w+)', re.DOTALL)
     
     for match in pattern_lean4.finditer(content):
         doc = match.group(1).strip()

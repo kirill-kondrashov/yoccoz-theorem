@@ -1,43 +1,35 @@
-\section{Escape}
-\textit{Source: \texttt{Quadratic/Complex/Escape.lean}}
+\section{The Escape Lemma}
+\label{sec:Escape}
 
-\begin{quotation}
-\textbf{Escape Lemma for the Quadratic Family}
+This section establishes the fundamental escape criterion for the quadratic family $f_c(z) = z^2 + c$. The result ensures that if the orbit of a point leaves a sufficiently large disk, it necessarily escapes to infinity.
 
-This file proves the escape lemma: if the orbit of a point ever leaves the disk of
-radius \texttt{R(c)}, then it escapes to infinity.
+\subsection{Statement}
+We recall the escape radius $R(c) = \max(2, 1 + |c|)$.
 
-Reference: "Conformal Geometry and Dynamics of Quadratic Polynomials",
-https://indico.ictp.it/event/a12182/session/2/contribution/1/material/0/0.pdf
-(See Section 21.2, p. 125 for the escape lemma)
+The \textbf{Escape Lemma} asserts that if for some iteration $n$, the point $z_n = f_c^{\circ n}(z)$ lies outside the disk of radius $R(c)$, i.e., $|z_n| > R(c)$, then the orbit of $z$ escapes to infinity:
+\[
+\lim_{m \to \infty} |f_c^{\circ m}(z)| = \infty
+\]
 
-\textbf{Connection to MLC}
+\subsection{Proof Strategy}
+The proof relies on establishing a geometric growth property for points outside the escape radius.
+We define a growth factor $\lambda(w)$ for any $w$ with $|w| > R(c)$:
+\[
+\lambda(w) = |w| - \frac{|c|}{|w|}
+\]
+The key steps are:
+\begin{enumerate}
+    \item \textbf{Growth Factor > 1}: We show that if $|w| > R(c)$, then $\lambda(w) > 1$.
+    \item \textbf{Inductive Lower Bound}: We prove by induction that for all $k \ge 0$, the subsequent iterates satisfy:
+    \[
+    |f_c^{\circ k}(w)| \ge |w| \cdot \lambda(w)^k
+    \]
+    \item \textbf{Conclusion}: Since $\lambda(w) > 1$, the term $\lambda(w)^k$ tends to infinity as $k \to \infty$, forcing the orbit to escape.
+\end{enumerate}
 
-The escape lemma is the foundational result for the construction of Yoccoz puzzles,
-which are central to the proof of the Mandelbrot Local Connectivity (MLC) conjecture.
-
-1.  **Basin of Infinity**: It establishes that the basin of attraction of infinity,
-    \$A(\textbackslash{}infty) = \textbackslash{}\{z \textbackslash{}mid f\_c\textasciicircum{}n(z) \textbackslash{}to \textbackslash{}infty\textbackslash{}\}\$, contains the complement of the disk \$D(0, R(c))\$.
-2.  **Green's Function**: This allows defining the Green's function \$G(z) = \textbackslash{}lim \textbackslash{}frac\{1\}\{2\textasciicircum{}n\} \textbackslash{}log|f\_c\textasciicircum{}n(z)|\$
-    for \$z \textbackslash{}in A(\textbackslash{}infty)\$.
-3.  **Böttcher Coordinates**: The Green's function is used to construct the Böttcher coordinate
-    \$\textbackslash{}phi\_c(z)\$ near infinity, which conjugates \$f\_c\$ to \$z \textbackslash{}mapsto z\textasciicircum{}2\$.
-4.  **Rays and Equipotentials**: The level sets of \$G(z)\$ (equipotentials) and the gradient lines
-    of \$G(z)\$ (external rays) form the grid for the Yoccoz puzzle partition.
-
-Thus, this lemma justifies the existence of the dynamical plane structures required for the
-combinatorial analysis in the MLC proof.
-\end{quotation}
-
-\subsection*{escape\_lemma}\label{escape_lemma}
-Escape lemma: if the orbit of z ever leaves the disk of radius R(c), then it
-escapes to infinity.
-
-Proof idea:
-We define a 'growth factor' \texttt{$\lambda$(w) = |w| - |c|/|w|}.
-We show that if \texttt{|w| > R(c)}, then \texttt{$\lambda$(w) > 1}.
-We then prove by induction that \texttt{|f\_c\textasciicircum{}k(w)| $\ge$ |w| * $\lambda$(w)\textasciicircum{}k}.
-Since \texttt{$\lambda$(w) > 1}, the term \texttt{$\lambda$(w)\textasciicircum{}k} grows to infinity, so the orbit norm grows unbounded.
-
-\textit{(See code: escape\_lemma)}
-
+\subsection{Significance for MLC}
+This lemma is crucial for the construction of the Yoccoz puzzle:
+\begin{itemize}
+    \item It defines the \textbf{Basin of Infinity} $A(\infty) = \{ z \mid f_c^{\circ n}(z) \to \infty \}$, which contains the complement of the closed disk $\overline{D}(0, R(c))$.
+    \item It allows the definition of the \textbf{Green's Function} on $A(\infty)$, which provides the "grid" (equipotentials and external rays) for the puzzle partition.
+\end{itemize}
