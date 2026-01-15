@@ -1,0 +1,66 @@
+name: Lean Action CI
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Elan
+      run: |
+        curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+        echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+    - name: Install Python and Poetry
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - run: pip install poetry
+
+    - name: Install TeXLive
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-latex-extra
+
+    - name: Cache .lake
+      uses: actions/cache@v4
+      with:
+        path: .lake
+        key: ${{ runner.os }}-lake-${{ hashFiles('lake-manifest.json') }}
+        restore-keys: |
+          ${{ runner.os }}-lake-
+
+    - name: Get mathlib cache
+      run: make cache
+
+    - name: Build Mlc
+      run: make build
+
+    - name: Check axioms
+      run: make check
+
+    - name: Verify README output
+      run: |
+        chmod +x scripts/verify_output.sh
+        ./scripts/verify_output.sh
+
+    - name: Install Script Dependencies
+      run: |
+        cd scripts
+        poetry install
+
+    - name: Generate Docs
+      run: make docs
+
+    - name: Build PDF
+      run: make pdf
