@@ -22,6 +22,14 @@ The proof splits into two cases:
     \[ |G_{n+1}(z) - G_n(z)| \approx \frac{1}{2^{n+1}} \left| \log \frac{|f_c(z_n)|}{|z_n|^2} \right| \le \frac{C}{2^n |z_n|^2}. \]
     Since $|z_n|$ grows exponentially, the sum of differences converges rapidly.
 \end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/convergence_plots.png}
+    \caption{Visualization of the convergence of the potential sequence $G_n(z)$. Left: The sequence values stabilize rapidly for escaping points (orange, blue) and stay zero for bounded points (green). Right: The difference $|G_{n+1}-G_n|$ decays doubly exponentially for escaping points, illustrating the Cauchy property.}
+    \label{fig:convergence}
+\end{figure}
+
 \end{proof}
 
 \subsection*{Limit Definition}
