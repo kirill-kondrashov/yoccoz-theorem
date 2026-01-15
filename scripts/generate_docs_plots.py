@@ -203,35 +203,81 @@ def plot_escape_radius():
     c = -0.8 + 0.156j
     R = max(2, 1 + abs(c))
     
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(8, 8))
+    
+    # Plot filled Julia set for context
+    extent = [-4, 4, -4, 4]
+    x = np.linspace(extent[0], extent[1], 400)
+    y = np.linspace(extent[2], extent[3], 400)
+    X, Y = np.meshgrid(x, y)
+    Z = X + 1j * Y
+    G = green_function(c, Z, max_iter=50)
+    ax.contourf(X, Y, G, levels=[0, 0.01], colors=['#e0e0e0'], alpha=0.5) # Light gray K(c)
+    
     circle = plt.Circle((0, 0), R, fill=False, color='red', linestyle='--', linewidth=2, label=f'Escape Radius $R(c)={R:.2f}$')
     ax.add_patch(circle)
     
-    # Plot a trajectory escaping
-    z = 1.1 * R + 0.0j # Start outside
-    path_x, path_y = [z.real], [z.imag]
-    for _ in range(5):
-        z = z**2 + c
-        path_x.append(z.real)
-        path_y.append(z.imag)
-        if abs(z) > 10: break
+    # Generate many escaping orbits
+    np.random.seed(42)
+    angles = np.linspace(0, 2*np.pi, 20, endpoint=False)
+    escaping_starts = (R * 1.05) * np.exp(1j * angles) # Just outside R
     
-    ax.plot(path_x, path_y, 'b-o', label='Escaping Orbit')
-    
-    # Plot a bounded trajectory
-    z_in = 0.0j
-    path_x_in, path_y_in = [z_in.real], [z_in.imag]
-    for _ in range(20):
-        z_in = z_in**2 + c
-        path_x_in.append(z_in.real)
-        path_y_in.append(z_in.imag)
-    ax.plot(path_x_in, path_y_in, 'g-', alpha=0.5, label='Bounded Orbit (inside)')
+    for i, z_start in enumerate(escaping_starts):
+        z = z_start
+        path_x, path_y = [z.real], [z.imag]
+        for _ in range(8):
+            z = z**2 + c
+            path_x.append(z.real)
+            path_y.append(z.imag)
+            if abs(z) > 10: break
+        label = 'Escaping Orbits' if i == 0 else None
+        
+        # Plot line (transparent)
+        ax.plot(path_x, path_y, color='blue', linestyle='-', linewidth=1, alpha=0.2, label=label)
+        # Plot start point (opaque, visible)
+        ax.plot(path_x[0], path_y[0], marker='o', color='blue', markersize=4, alpha=0.8)
+        # Plot end point (arrow-like or distinct)
+        ax.plot(path_x[-1], path_y[-1], marker='>', color='blue', markersize=4, alpha=0.6)
+
+    # Generate many bounded orbits (random points inside K(c))
+    # We pick points, check if they are in K(c) roughly (G approx 0), then plot
+    bounded_starts = []
+    attempts = 0
+    while len(bounded_starts) < 10 and attempts < 1000:
+        z_cand = (np.random.random() + 1j * np.random.random()) * 2 - (1 + 1j) # box [-1, 1]
+        # Quick check
+        curr = z_cand
+        escaped = False
+        for _ in range(50):
+            if abs(curr) > R:
+                escaped = True
+                break
+            curr = curr**2 + c
+        if not escaped:
+            bounded_starts.append(z_cand)
+        attempts += 1
+
+    for i, z_start in enumerate(bounded_starts):
+        z_in = z_start
+        path_x_in, path_y_in = [z_in.real], [z_in.imag]
+        for _ in range(30):
+            z_in = z_in**2 + c
+            path_x_in.append(z_in.real)
+            path_y_in.append(z_in.imag)
+        label = 'Bounded Orbits' if i == 0 else None
+        
+        # Plot line
+        ax.plot(path_x_in, path_y_in, color='green', linestyle='-', linewidth=1, alpha=0.2, label=label)
+        # Plot start point
+        ax.plot(path_x_in[0], path_y_in[0], marker='o', color='green', markersize=4, alpha=0.8)
+        # Mark direction with small dots along path?
+        ax.plot(path_x_in[1:], path_y_in[1:], marker='.', color='green', markersize=1, alpha=0.2, linestyle='None')
     
     ax.set_xlim(-4, 4)
     ax.set_ylim(-4, 4)
     ax.set_aspect('equal')
-    ax.set_title(r"Escape Radius $R(c)$")
-    ax.legend()
+    ax.set_title(r"Escape Radius $R(c)$ Dynamics")
+    ax.legend(loc='upper right')
     plt.tight_layout()
     plt.savefig('../docs/images/escape_radius.png', dpi=150)
     plt.close()
@@ -312,34 +358,48 @@ def plot_escape_growth():
     c = 0.3
     R = 2.0
     
-    fig, ax = plt.subplots(figsize=(6, 4))
+    fig, ax = plt.subplots(figsize=(8, 5))
     
-    # Escaping orbit
-    z_esc = 1.5 # Close to escape
-    orbit_esc = [abs(z_esc)]
-    curr = z_esc
-    for _ in range(10):
-        curr = curr**2 + c
-        orbit_esc.append(abs(curr))
+    # Define orbits: (start_z, label, style, color)
+    orbits = [
+        (1.5, 'Escaping (Fast)', 'o-', 'blue'),
+        (1.3, 'Escaping (Slow)', 's-', 'cyan'),
+        (2.1, 'Escaping (Immediate)', '^-', 'navy'),
+        (0.5, 'Bounded (Stable)', 'x-', 'green'),
+        (0.1, 'Bounded (Center)', '.-', 'lime'),
+        (0.8, 'Bounded (Boundary)', '*-', 'olive') # Might escape if unlucky, but 0.3 is hyperbolic
+    ]
+
+    for z0, label, marker, color in orbits:
+        orbit = [abs(z0)]
+        curr = complex(z0) # Ensure complex type for calculation
+        escaped = False
+        for _ in range(12):
+            try:
+                curr = curr**2 + c
+                val = abs(curr)
+                if val > 1e10: # Cap large values for plot and prevent overflow
+                    val = 1e10
+                    escaped = True
+                orbit.append(val)
+                if escaped: # Stop iterating if already huge
+                    # Fill rest with capped value or just stop?
+                    # Stopping is safer for log plot
+                    pass 
+            except OverflowError:
+                 orbit.append(1e10)
+                 escaped = True
+
+        ax.plot(orbit, marker, color=color, label=f'{label} $|z_0|={z0}$')
     
-    # Bounded orbit
-    z_bd = 0.5
-    orbit_bd = [abs(z_bd)]
-    curr = z_bd
-    for _ in range(10):
-        curr = curr**2 + c
-        orbit_bd.append(abs(curr))
-        
-    ax.plot(orbit_esc, 'b-o', label='Escaping ($|z_0|=1.5$)')
-    ax.plot(orbit_bd, 'g-x', label='Bounded ($|z_0|=0.5$)')
-    ax.axhline(R, color='r', linestyle='--', label='Escape Radius R')
+    ax.axhline(R, color='r', linestyle='--', linewidth=2, label='Escape Radius R')
     
     ax.set_yscale('log')
     ax.set_xlabel('Iteration n')
     ax.set_ylabel('|z_n| (log scale)')
-    ax.set_title("Orbit Growth")
+    ax.set_title("Orbit Growth Dynamics")
     ax.legend()
-    ax.grid(True)
+    ax.grid(True, which="both", ls="-", alpha=0.3)
     
     plt.tight_layout()
     plt.savefig('../docs/images/escape_growth.png', dpi=150)
