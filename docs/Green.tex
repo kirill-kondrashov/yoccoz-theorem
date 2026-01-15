@@ -25,6 +25,13 @@ where $\log^+(x) = \max(0, \log x)$. In Lean, this is formalized using the seque
 \textit{The Green's function satisfies the functional equation:}
 \[ G_c(f_c(z)) = 2 G_c(z). \]
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/green_functional_eq.png}
+    \caption{Functional Equation $G(f(z)) = 2G(z)$. The map $f_c$ transforms the equipotential curve at level $L=0.5$ (blue) to the curve at level $2L=1.0$ (red).}
+    \label{fig:green_functional_eq}
+\end{figure}
+
 \begin{proof}[Proof Idea]
 The factor of 2 comes from the squaring nature of the map near infinity:
 \[

@@ -8,6 +8,14 @@ We consider the family of quadratic polynomials parametrized by $c \in \mathbb{C
 \[
 f_c(z) = z^2 + c
 \]
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/basic_mapping.png}
+    \caption{The Quadratic Map $z \mapsto z^2 + c$. The grid lines in the domain (blue) are mapped to parabolic curves in the range (red), illustrating the "folding" nature of the map.}
+    \label{fig:basic_mapping}
+\end{figure}
+
 The forward orbit of a point $z_0 \in \mathbb{C}$ under $f_c$ is the sequence defined by:
 \[
 \text{orbit}_c(z_0, n) = f_c^{\circ n}(z_0)
@@ -59,3 +67,10 @@ We assume two deep results from the theory of complex dynamics as axioms for thi
     \item \textbf{Connectivity of $\mathcal{M}$}: The Mandelbrot set $\mathcal{M}$ is connected (Douady and Hubbard, 1984).
     \item \textbf{Connectivity of $K(c)$}: For any $c \in \mathcal{M}$, the filled Julia set $K(c)$ is connected (Douady and Hubbard, 1984).
 \end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/basic_connectivity.png}
+    \caption{Connectivity Dichotomy. Left: For $c \in \mathcal{M}$, $K(c)$ is connected. Right: For $c \notin \mathcal{M}$, $K(c)$ is a Cantor set (disconnected dust).}
+    \label{fig:basic_connectivity}
+\end{figure}

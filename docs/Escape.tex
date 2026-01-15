@@ -35,6 +35,13 @@ Since $\lambda(w) > 1$, the term $\lambda(w)^k$ tends to infinity as $k \to \inf
 \subsection*{Orbit Growth}
 A direct consequence of the escape mechanism is that the norm of the orbit cannot decrease once it exceeds the escape radius.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/escape_growth.png}
+    \caption{Orbit Growth. Once the orbit norm exceeds $R(c)$, it grows exponentially (linear on log scale, blue). Bounded orbits fluctuate below $R(c)$ (green).}
+    \label{fig:escape_growth}
+\end{figure}
+
 \textbf{Lemma} (\texttt{norm\_orbit\_ge\_of\_norm\_ge\_R}).
 \textit{If $|z| > R(c)$, then for all $n \in \mathbb{N}$,
 \[ |f_c^n(z)| \ge |z|. \]
