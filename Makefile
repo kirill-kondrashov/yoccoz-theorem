@@ -36,10 +36,11 @@ docs:
 # Compile proof.tex to PDF
 # Runs xelatex twice to resolve cross-references and bookmarks
 pdf:
-	cd docs && xelatex proof.tex
+	cd docs && xelatex proof.tex && xelatex proof.tex
 
 # Clean build artifacts
 clean:
 	rm -f docs/proof.aux docs/proof.log docs/proof.out docs/proof.pdf .cache_marker
 	# Delete only generated tex files
-	rm -f docs/Yoccoz.tex docs/Green.tex docs/GreenLemmas.tex docs/Groetzsch.tex docs/Puzzle.tex docs/PuzzleLemmas.tex
+	# Note: These are now checked in and manually maintained, so don't delete them.
+	# rm -f docs/Yoccoz.tex docs/Green.tex docs/GreenLemmas.tex docs/Groetzsch.tex docs/Puzzle.tex docs/PuzzleLemmas.tex
