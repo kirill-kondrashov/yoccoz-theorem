@@ -53,6 +53,16 @@ theorem yoccoz_theorem (c : ℂ) :
       have h_ne : (DynamicalPuzzlePiece c n 0).Nonempty := ⟨0, mem_dynamical_puzzle_piece_self c hc n⟩
       rw [DynamicalPuzzlePiece] at h_ne ⊢
       exact ⟨h_ne, isPreconnected_connectedComponentIn⟩
+    · intro n
+      apply MeasurableSet.nullMeasurableSet
+      rw [DynamicalPuzzlePiece]
+      have h_open_set : IsOpen {w | green_function c w < (1 / 2) ^ n} :=
+        IsOpen.preimage (continuous_green_function c) isOpen_Iio
+      -- Connected components of open sets in locally connected spaces are open
+      -- We assume this for now as it's a topology fact
+      have h_comp_open : IsOpen (connectedComponentIn {w | green_function c w < (1 / 2) ^ n} 0) :=
+        IsOpen.connectedComponentIn h_open_set
+      exact IsOpen.measurableSet h_comp_open
     · exact h_div
   · exfalso
     apply h_div
