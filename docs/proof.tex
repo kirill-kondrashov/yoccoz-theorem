@@ -97,13 +97,9 @@ This formalization covers the proof of Yoccoz's Theorem ("Shrinking Puzzle Piece
 The MLC conjecture has stood as one of the most significant open problems in complex dynamics. Yoccoz established the result for non-renormalizable parameters. This work formalizes that result.
 
 \subsection{Disclaimer and Verification}
-While this proof has been checked by the Lean 4 kernel, which provides a high degree of assurance regarding the logical consistency of the derivation from the specified axioms, it is essential to emphasize that \textbf{human expert verification is still required}.
+While this proof has been checked by the Lean 4 kernel, which provides a high degree of assurance regarding the logical consistency of the derivation, it is essential to emphasize that \textbf{human expert verification is still required}.
 
-The correctness of the result depends entirely on:
-\begin{itemize}
-    \item The faithfulness of the formal definitions (e.g., \texttt{MandelbrotSet}, \texttt{Modulus}, \texttt{PuzzlePiece}) to their standard mathematical counterparts.
-    \item The validity of the axioms introduced (e.g., properties of Green's functions, Grötzsch's inequality).
-\end{itemize}
+The correctness of the result depends entirely on the faithfulness of the formal definitions (e.g., \texttt{MandelbrotSet}, \texttt{Modulus}, \texttt{PuzzlePiece}) to their standard mathematical counterparts. All domain-specific results, including Grötzsch's inequality and properties of Green's functions, have been fully formalized and rely only on Lean's standard axioms.
 
 
 \vspace{1em}
@@ -151,13 +147,16 @@ The engine of the proof is \textbf{Grötzsch's Inequality} (\texttt{Groetzsch.te
 \begin{thebibliography}{9}
 
 \bibitem{Milnor}
-John Milnor, \textit{Dynamics in One Complex Variable}, arXiv:math/9201272.
+John Milnor, \textit{Dynamics in One Complex Variable}, 3rd ed., Annals of Mathematics Studies 160, Princeton University Press, 2006.
 
 \bibitem{Lyubich}
-Mikhail Lyubich, \textit{Conformal Geometry and Dynamics of Quadratic Polynomials, Vol I}.
+Mikhail Lyubich, \textit{Dynamics of quadratic polynomials, I--II}, Acta Mathematica 178, no. 2 (1997): 185--297.
+
+\bibitem{Hubbard}
+John H. Hubbard, \textit{Local connectivity of Julia sets and bifurcation loci: three theorems of J.-C. Yoccoz}, in \textit{Topological Methods in Modern Mathematics}, Publish or Perish, 1993, pp. 467--511.
 
 \bibitem{Slodkowski}
-Zbigniew Slodkowski, \textit{Holomorphic motions and polynomial hulls}, Proc. Amer. Math. Soc. 111 (1991), 347-355.
+Zbigniew Slodkowski, \textit{Holomorphic motions and polynomial hulls}, Proc. Amer. Math. Soc. 111, no. 2 (1991): 347--355.
 
 \end{thebibliography}
 
