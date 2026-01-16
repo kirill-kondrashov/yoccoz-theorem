@@ -1,6 +1,6 @@
 # Machine-Generated Formalization of Yoccoz's Theorem
 
-[![build](https://github.com/kirill-kondrashov/yoccos-theorem/actions/workflows/lean.yml/badge.svg)](https://github.com/kirill-kondrashov/yoccos-theorem/actions/workflows/lean_action_ci.yml)
+[![build](https://github.com/kirill-kondrashov/yoccos-theorem/actions/workflows/badge.svg)](https://github.com/kirill-kondrashov/yoccos-theorem/actions/workflows/lean_action_ci.yml)
 
 This repository contains a **machine-generated formal proof** of Yoccoz's Theorem for quadratic polynomials in Lean 4. This theorem is a key component of the Mandelbrot Local Connectivity (MLC) Conjecture, establishing it for non-renormalizable parameters.
 
