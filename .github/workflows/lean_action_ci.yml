@@ -45,7 +45,7 @@ jobs:
     - name: Get mathlib cache
       run: make cache
 
-    - name: Build Mlc
+    - name: Build
       run: make build
 
     - name: Check axioms

@@ -8,7 +8,7 @@ ACTUAL="output.txt"
 
 # Extract the expected output from README.md
 # We assume the output block starts after "Output:" and is a code block
-sed -n '/^Output:/,$p' "$README" | sed -n '/^```$/,/^```$/p' | sed '1d;$d' > "$EXPECTED"
+sed -n '/Expected Output:/,$p' "$README" | sed -n '/^```$/,/^```$/p' | sed '1d;$d' > "$EXPECTED"
 
 # Run make check and capture output
 # We filter out lines starting with "lake" or containing progress bars if necessary
